@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Kleiner Held</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="./assets/charakter/Favicon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mediaqueries.css">
+</head>
+<body onload="init()">
+  <h1>Kleiner Held</h1>
+
+  <template id="bg-layer-tpl">
+    <div class="bg-layer"></div>
+  </template>
+  <div class="rotate-hint" style="display:none;">Bitte ins Querformat drehen.</div>
+  <div id="game" class="game"><canvas id="gameCanvas" class="game-canvas" width="1000" height="600"></canvas>
+  <div id="controlpanel" class="controlpanel">
+    <div class="controls">
+      <div class="direction">
+        <button id="left"  class="control-button btn-left"  data-key="a"><img src="./assets/buttons/arrow_left.png"  alt=""></button>
+        <button id="right" class="control-button btn-right" data-key="d"><img src="./assets/buttons/arrow_right.png" alt=""></button>
+      </div>
+
+      <div class="buy">
+        <button id="weapon" class="buy-button btn-upgrade1" data-key="1">
+          <img src="./assets/coin/anvil.png" alt="Upgrade Waffe" draggable="false">
+        </button>
+        <button id="luck"   class="buy-button btn-upgrade2" data-key="2">
+          <img src="./assets/coin/cloverleaf.png" alt="Lucky" draggable="false">
+        </button>
+        <button id="invuln" class="buy-button btn-upgrade3" data-key="3">
+          <img src="./assets/coin/award.png" alt="Unverwundbarkeit" draggable="false">
+        </button>
+        <button id="heart"  class="buy-button btn-heart"    data-key="w">
+          <img src="./assets/coin/heart.png" alt="Herz" draggable="false">
+        </button>
+        <button id="sound"  class="buy-button"><img id="soundIcon" src="./assets/buttons/sound_on.png" alt="Sound" draggable="false"></button>
+        <button id="pause"  class="buy-button"><img id="pauseIcon" src="./assets/buttons/play.png" alt="Pause/Play" draggable="false"></button>
+        <button id="fullscreen" class="buy-button"><img id="fsIcon" src="./assets/buttons/fullscreen.png" alt="Fullscreen" draggable="false"></button>
+      </div>
+
+      <div class="actions">
+        <button id="jump"   class="actions btn-jump"   data-key="SPACE"><img src="./assets/buttons/arrow_up.png" alt=""></button>
+        <button id="attack" class="actions btn-attack" data-key="e"><img src="./assets/buttons/sword.png"    alt=""></button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <footer class="site-footer"><a href="impressum.html">Impressum</a></footer>
+
+  <script src="./models/movable-objects.class.js"></script>
+  <script src="./models/EnemyAI.class.js"></script>
+  <script src="./models/background.class.js"></script>
+
+  <script src="./js/character.js"></script>
+
+  <script src="./js/1lizard.js"></script>
+  <script src="./js/1troll.js"></script>
+  <script src="./js/2skeleton.js"></script>
+  <script src="./js/2dragon.js"></script>
+  <script src="./js/3minotaur.js"></script>
+  <script src="./js/3demon.js"></script>
+  <script src="./js/debug.js"></script>
+  
+  <script src="./models/enemy1Lizard.class.js"></script>
+  <script src="./models/enemy2Skeleton.class.js"></script>
+  <script src="./models/enemy3Minotaur.class.js"></script>
+  <script src="./models/boss1Troll.class.js"></script>
+  <script src="./models/boss2Dragon.class.js"></script>
+  <script src="./models/boss3Demon.class.js"></script>
+  <script src="./models/character.class.js"></script>
+  <script src="./models/spriteAnimator.class.js"></script>
+  <script src="./models/bird.class.js"></script>
+  <script src="./models/coins.class.js"></script>
+  <script src="./models/collision.class.js"></script>
+  <script src="./models/hud.class.js"></script>
+  <script src="./models/keyboard.class.js"></script>
+  <script src="./models/level.class.js"></script>
+  <script src="./models/overlay.class.js"></script>
+  <script src="./models/powerup.class.js"></script>
+  <script src="./models/levelEndObject.class.js"></script>
+  <script src="./models/audio.class.js"></script>
+  <script src="./models/combat.class.js"></script>
+
+  <script src="./levels/level1.js"></script>
+  <script src="./levels/level2.js"></script>
+  <script src="./levels/level3.js"></script>
+
+  <script src="./models/world.class.js"></script>
+  <script src="./models/worldupdate.class.js"></script>
+  <script src="./models/worlddraw.class.js"></script>
+
+  <script src="./js/game.js"></script>
+</body>
+</html>

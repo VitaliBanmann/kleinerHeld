@@ -1,0 +1,150 @@
+@font-face {
+    font-family: 'StoryScript';
+    src: url('./assets/fonts/StoryScript-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'GreatVibes';
+    src: url('./assets/fonts/GreatVibes-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    position: relative;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'StoryScript', Arial, sans-serif;
+    letter-spacing: 0.06em;
+    background-image: url('./assets/background/field1_1920.jpg');
+    background-position: center;
+}
+
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.fade-out {
+    animation: bgFadeOut 2s linear forwards;
+}
+
+.fade-in-delayed {
+    animation: bgFadeIn 1.2s ease forwards;
+    animation-delay: 0s;
+}
+
+.fade-in-instant {
+    animation: bgFadeIn 0.6s ease forwards;
+}
+
+@keyframes bgFadeOut {
+    0% { opacity: 1; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes bgFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+h1 {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'GreatVibes';
+    margin: 0;
+    font-size: 5em;
+    text-align: center;
+    color: green;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    z-index: 5;
+    pointer-events: none;
+}
+
+.game-canvas {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    display: block;
+    border-radius: 16px;
+}
+
+.rotate-hint {
+  display: none;
+  position: fixed; inset: 0; z-index: 10;
+  align-items: center; justify-content: center;
+  color: #fff; font: 600 18px/1.4 Arial, sans-serif;
+  background: rgba(0,0,0,0.6);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+body.portrait-blocked .game-canvas,
+body.portrait-blocked .controlpanel { display: none; }
+body.pseudo-fs .game-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    border: 0;
+    border-radius:
+    0; box-shadow: none;
+}
+
+.site-footer {
+  position: fixed;
+  left: 50%; transform: translateX(-50%);
+  bottom: 8px; z-index: 3;
+  font: 600 13px/1 Arial, sans-serif;
+  display: none;
+}
+.site-footer a {
+  color: #fff;
+  text-decoration: none;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+body.show-impressum .site-footer {
+    display: block;
+}
+
+.impressum {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px 64px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.imp-box {
+    max-width: 840px;
+    width: 100%; background: rgba(0,0,0,0.35);
+    color:#fff;
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:16px;
+    padding:20px;
+    backdrop-filter: blur(4px);
+}
+
+.imp-box a {
+    color:#cfe7ff; text-decoration: none;
+}
+
+body.overlay-active .controlpanel { display: none; }
