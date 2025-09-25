@@ -349,7 +349,7 @@ class Overlay {
      * @returns {{title:string,lines:string[],buttons:{id:string,label:string}[]}}
      */
     static scrStart(){ return Overlay.scrSimple('Kleiner Held', [
-        'Ein spannendes 2D-Abenteuer:', 'Sammle Münzen, verbessere dich und', 'besiege alle Gegner.'
+        'Ein spannendes 2D-Abenteuer:', 'Erlebe 3 Levels, sammle Münzen, verbessere dich und', 'besiege alle Gegner. Nur die Stärksten Helden töten mit einem Schlag!',
     ], [{ id:'start', label:'Start' }, { id:'help', label:'Steuerung' }]); }
 
     /**

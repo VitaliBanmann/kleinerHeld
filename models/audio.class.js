@@ -14,9 +14,16 @@ class AudioManager {
      * @returns {void}
      */
     static init() {
+        const savedMute = localStorage.getItem('kleinerheld-muted');
+        if (savedMute !== null) {
+            this.muted = JSON.parse(savedMute);
+        }
+        
         this.initMenuTrack();
         this.initThemeTracks();
         this.initSfx();
+        
+        this.setMuted(this.muted);
     }
 
     /**
@@ -183,6 +190,8 @@ class AudioManager {
      */
     static setMuted(m) {
         this.muted = m;
+        localStorage.setItem('kleinerheld-muted', JSON.stringify(m));
+        
         const all = [];
         if (this.tracks.menu) all.push(this.tracks.menu);
         this.tracks.themes.forEach(t => t && all.push(t));
