@@ -199,7 +199,9 @@ class Character extends MoveableObject {
     resolveJumpEnd() {
         if (this.state !== 'jump') return false;
         const frames = this.animations['jump'] || [];
-        if (this.frameIndex === frames.length - 1 && !this.isAboveGround()) this.setState('idle');
+        if (this.frameIndex === frames.length - 1 || !this.isAboveGround()) {
+            this.setState('idle');
+        }
         return true;
     }
 
