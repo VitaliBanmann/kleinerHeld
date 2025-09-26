@@ -13,7 +13,8 @@ class EnemyMinotaur extends MoveableObject {
     maxHealth = 30;
 
     // Hitbox
-    HitboxOffsetX = -30;
+    HitboxOffsetX = 40;
+    HitboxOffsetXRight = 35;
     HitboxOffsetY = -50;
     HitboxWidth = 50;
     HitboxHeight = 100;

@@ -11,7 +11,8 @@ class BossTroll extends MoveableObject {
     bossSoundRange = 800;
 
     // Hitbox
-    HitboxOffsetX = -230;
+    HitboxOffsetX = 180;
+    HitboxOffsetXRight = 60;
     HitboxOffsetY = -375;
     HitboxWidth = 400;
     HitboxHeight = 520;

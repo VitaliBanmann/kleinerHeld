@@ -13,7 +13,8 @@ class EnemySkeleton extends MoveableObject {
     maxHealth = 25;
 
     // Hitbox
-    HitboxOffsetX = -40;
+    HitboxOffsetX = 58;
+    HitboxOffsetXRight = 35;
     HitboxOffsetY = -10;
     HitboxWidth = 35;
     HitboxHeight = 60;

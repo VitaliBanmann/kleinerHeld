@@ -12,6 +12,7 @@ class BossDragon extends MoveableObject {
 
     // Hitbox
     HitboxOffsetX = 0;
+    HitboxOffsetXRight = 25;
     HitboxOffsetY = 75;
     HitboxWidth = 125;
     HitboxHeight = 75;

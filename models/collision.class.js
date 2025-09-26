@@ -18,7 +18,7 @@ class Collision {
         if (!Collision.debugMode || !ctx) return;
         ctx.save();
         ctx.setLineDash([4, 2]);
-        Collision._debugRects.forEach(r => {
+        Collision.debugRects.forEach(r => {
             ctx.strokeStyle = r.color || '#ff00ff';
             ctx.lineWidth = 1;
             ctx.strokeRect(r.x, r.y, r.w, r.h);
@@ -31,7 +31,7 @@ class Collision {
      * Erwartete (optionale) Felder:
      *  x,y,width,height,scale,
      *  HitboxWidth,HitboxHeight,
-     *  HitboxOffsetX,HitboxOffsetY,
+     *  HitboxOffsetX,HitboxOffsetXRight,HitboxOffsetY,
      *  hitboxAnchor ('center' für zentriert),
      *  direction (truthy => Blick nach links?),
      *  mirrorHitbox (false verhindert Spiegelung),
@@ -49,6 +49,7 @@ class Collision {
             HitboxWidth: null,
             HitboxHeight: null,
             HitboxOffsetX: 0,
+            HitboxOffsetXRight: null,
             HitboxOffsetY: 0,
             ...inputObj
         };
@@ -56,26 +57,15 @@ class Collision {
         const scale = Number(obj.scale) || 1;
         const hitboxWidth  = (obj.HitboxWidth  != null) ? obj.HitboxWidth  : (obj.width  ?? 0);
         const hitboxHeight = (obj.HitboxHeight != null) ? obj.HitboxHeight : (obj.height ?? 0);
-        const offsetX = obj.HitboxOffsetX ?? 0;
+        
+        const isMovingLeft = !!obj.direction;
+        const offsetX = isMovingLeft 
+            ? (obj.HitboxOffsetX ?? 0) 
+            : (obj.HitboxOffsetXRight ?? obj.HitboxOffsetX ?? 0);
+            
         const offsetY = obj.HitboxOffsetY ?? 0;
-        const imageWidth = obj.width ?? 0;
-        const referenceWidth = Math.max(imageWidth, hitboxWidth);
 
-        const isCentered = obj.hitboxAnchor === 'center';
-        const canMirror  = !!obj.direction && obj.mirrorHitbox !== false && !isCentered;
-        function computeXPosition() {
-            if (isCentered) {
-                const centerAdjust = (hitboxWidth - referenceWidth) / 2;
-                return (obj.x ?? 0) - centerAdjust + offsetX * scale;
-            }
-            if (canMirror) {
-                const mirroredOffset = referenceWidth - (offsetX + hitboxWidth);
-                return (obj.x ?? 0) + mirroredOffset * scale;
-            }
-            return (obj.x ?? 0) + offsetX * scale;
-        }
-
-        const x = computeXPosition();
+        const x = (obj.x ?? 0) + offsetX * scale;
         const y = (obj.y ?? 0) + offsetY * scale;
 
         const rect = {
@@ -86,7 +76,7 @@ class Collision {
         };
 
         if (Collision.debugMode) {
-            Collision._debugRects.push({
+            Collision.debugRects.push({
                 ...rect,
                 color: obj.debugColor || '#ff00ff'
             });

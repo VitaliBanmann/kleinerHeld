@@ -8,11 +8,12 @@ class BossDemon extends MoveableObject {
     speed = 0.7;
     health = 50;
     maxHealth = 50;
-    bossSoundRange = 800;
+    bossSoundRange = 1100;
 
     // Hitbox
-    HitboxOffsetX = -7;
-    HitboxOffsetY = 65;
+    HitboxOffsetX = 20;
+    HitboxOffsetXRight = 0;
+    HitboxOffsetY = 70;
     HitboxWidth = 60;
     HitboxHeight = 80;
 

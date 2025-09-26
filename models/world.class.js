@@ -14,7 +14,7 @@ class World {
   ctx;
   camera_x = 0;
   levelWidth = 12000;
-  tileWidth = 1200;
+  tileWidth = 1199;
 
   currentLevel = null;
   switching = false;

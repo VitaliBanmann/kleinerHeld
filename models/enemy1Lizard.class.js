@@ -11,7 +11,8 @@ class EnemyLizard extends MoveableObject {
     maxHealth = 20;
 
     // Hitbox
-    HitboxOffsetX = -30;
+    HitboxOffsetX = 30;
+    HitboxOffsetXRight = 10;
     HitboxOffsetY = 0;
     HitboxWidth = 50;
     HitboxHeight = null;
