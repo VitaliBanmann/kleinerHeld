@@ -1,226 +1,254 @@
 class AudioManager {
-    static unlocked = false;
-    static current = null;
-    static playlist = [];
-    static playlistIdx = 0;
-    static muted = false;
-    static volumes = { music: 0.4, sfx: 0.9 };
-    static tracks = { menu: null, themes: [] };
-    static sfx = { sword: null, spear: null, bossdemon: null, bossdragon: null, bosstroll: null, death: null };
+    static isAudioUnlocked = false;
+    static currentAudioElement = null;
+    static currentPlaylist = [];
+    static currentPlaylistIndex = 0;
+    static isMuted = false;
+    static volumeLevels = { music: 0.4, soundEffects: 0.9 };
+    static musicTracks = { menu: null, themes: [] };
+    static soundEffects = {
+        sword: null,
+        spear: null,
+        bossDemon: null,
+        bossDragon: null,
+        bossTroll: null,
+        death: null,
+        gameOver: null,
+        jump: null,
+        win: null
+    };
 
     /**
-     * Initializes audio assets and applies volumes/loop settings.
-     * Splits work into small helpers to keep this method short.
+     * Initializes all audio assets and applies volume/mute settings.
+     * Delegates to helper methods for menu, themes, and sound effects.
      * @returns {void}
      */
-    static init() {
-        const savedMute = localStorage.getItem('kleinerheld-muted');
-        if (savedMute !== null) {
-            this.muted = JSON.parse(savedMute);
+    static initializeAudio() {
+        const savedMuteSetting = localStorage.getItem('kleinerheld-muted');
+        if (savedMuteSetting !== null) {
+            this.isMuted = JSON.parse(savedMuteSetting);
         }
-        
-        this.initMenuTrack();
-        this.initThemeTracks();
-        this.initSfx();
-        
-        this.setMuted(this.muted);
+
+        this.initializeMenuMusicTrack();
+        this.initializeThemeMusicTracks();
+        this.initializeSoundEffects();
+
+        this.setMuteState(this.isMuted);
     }
 
     /**
-     * Creates and configures the looping menu track.
+     * Creates and configures the looping menu music track.
      * @returns {void}
      */
-    static initMenuTrack() {
-        const a = new Audio('./assets/audio/Music/menu.m4a');
-        a.loop = true;
-        a.volume = this.volumes.music;
-        this.tracks.menu = a;
+    static initializeMenuMusicTrack() {
+        const menuAudioElement = new Audio('./assets/audio/Music/menu.m4a');
+        menuAudioElement.loop = true;
+        menuAudioElement.volume = this.volumeLevels.music;
+        this.musicTracks.menu = menuAudioElement;
     }
 
     /**
-     * Creates theme tracks and applies default music volume.
+     * Creates theme music tracks and applies default music volume.
      * @returns {void}
      */
-    static initThemeTracks() {
-        this.tracks.themes = [
+    static initializeThemeMusicTracks() {
+        this.musicTracks.themes = [
             new Audio('./assets/audio/Music/theme1.m4a'),
             new Audio('./assets/audio/Music/theme2.m4a'),
-            new Audio('./assets/audio/Music/theme3.m4a'),
+            new Audio('./assets/audio/Music/theme3.m4a')
         ];
-        this.tracks.themes.forEach(a => { a.volume = this.volumes.music; a.loop = false; });
+        this.musicTracks.themes.forEach(themeAudioElement => {
+            themeAudioElement.volume = this.volumeLevels.music;
+            themeAudioElement.loop = false;
+        });
     }
 
     /**
-     * Creates SFX clips and applies default SFX volume.
+     * Creates sound effect audio elements and applies default sound effect volume.
      * @returns {void}
      */
-    static initSfx() {
-        this.sfx.sword = new Audio('./assets/audio/sword.mp3');
-        this.sfx.spear = new Audio('./assets/audio/spear.mp3');
-        this.sfx.bossdemon = new Audio('./assets/audio/demon.mp3');
-        this.sfx.bossdragon = new Audio('./assets/audio/dragon.mp3');
-        this.sfx.bosstroll = new Audio('./assets/audio/troll.mp3');
-        this.sfx.death = new Audio('./assets/audio/death-sound.mp3');
-        Object.values(this.sfx).forEach(a => a.volume = this.volumes.sfx);
+    static initializeSoundEffects() {
+        this.soundEffects.sword = new Audio('./assets/audio/sword.mp3');
+        this.soundEffects.spear = new Audio('./assets/audio/spear.mp3');
+        this.soundEffects.bossDemon = new Audio('./assets/audio/demon.mp3');
+        this.soundEffects.bossDragon = new Audio('./assets/audio/dragon.mp3');
+        this.soundEffects.bossTroll = new Audio('./assets/audio/troll.mp3');
+        this.soundEffects.death = new Audio('./assets/audio/death-sound.mp3');
+        this.soundEffects.gameOver = new Audio('./assets/audio/game-over.mp3');
+        this.soundEffects.jump = new Audio('./assets/audio/jump.mp3');
+        this.soundEffects.win = new Audio('./assets/audio/win.mp3');
+        Object.values(this.soundEffects).forEach(audioElement => {
+            if (audioElement) audioElement.volume = this.volumeLevels.soundEffects;
+        });
     }
 
     /**
-     * Setzt einmaligen Pointer-Listener um Autoplay-Beschränkung zu umgehen.
-     * Beim ersten Klick wird freigeschaltet und passende Musik gestartet.
+     * Sets up a one-time pointer event listener to unlock audio playback on first user gesture.
+     * Starts the appropriate music after unlocking.
+     * @returns {void}
      */
-    static startUserGestureHook() {
-        const unlock = () => {
-            this.unlocked = true;
+    static startUserGestureUnlock() {
+        const unlockAudio = () => {
+            this.isAudioUnlocked = true;
             if (window.world?.currentLevel) {
-                this.playThemeForLevel(window.world.currentLevel);
+                this.playThemeMusicForLevel(window.world.currentLevel);
             } else {
-                this.playMenu();
+                this.playMenuMusic();
             }
         };
-        document.addEventListener('pointerdown', unlock, { once: true });
+        document.addEventListener('pointerdown', unlockAudio, { once: true });
     }
 
     /**
-     * Stoppt aktuelle Musik + Playliste.
+     * Stops the currently playing music and clears the playlist.
+     * @returns {void}
      */
-    static stopMusic() {
-        if (this.current) {
-            this.current.pause();
-            this.current = null;
+    static stopMusicPlayback() {
+        if (this.currentAudioElement) {
+            this.currentAudioElement.pause();
+            this.currentAudioElement = null;
         }
-        this.stopPlaylist();
+        this.stopMusicPlaylist();
     }
 
     /**
-     * Leert Playliste und setzt alle Theme-Tracks zurück.
+     * Clears the music playlist and resets all theme tracks.
+     * @returns {void}
      */
-    static stopPlaylist() {
-        this.playlist = [];
-        this.playlistIdx = 0;
-        this.tracks.themes.forEach(a => {
-            if (a) {
-                a.pause();
-                a.currentTime = 0;
+    static stopMusicPlaylist() {
+        this.currentPlaylist = [];
+        this.currentPlaylistIndex = 0;
+        this.musicTracks.themes.forEach(themeAudioElement => {
+            if (themeAudioElement) {
+                themeAudioElement.pause();
+                themeAudioElement.currentTime = 0;
             }
         });
     }
 
     /**
-     * Spielt Menü-Musik (falls freigeschaltet).
+     * Plays the menu music if audio is unlocked.
+     * @returns {void}
      */
-    static playMenu() {
-        if (!this.unlocked) return;
-        this.stopMusic();
-        this.current = this.tracks.menu;
-        if (this.current) {
-            this.current.currentTime = 0;
-            this.current.play().catch(()=>{});
+    static playMenuMusic() {
+        if (!this.isAudioUnlocked) return;
+        this.stopMusicPlayback();
+        this.currentAudioElement = this.musicTracks.menu;
+        if (this.currentAudioElement) {
+            this.currentAudioElement.currentTime = 0;
+            this.currentAudioElement.play().catch(() => {});
         }
     }
 
     /**
-     * Wählt Theme anhand Level-Referenz (z.B. level2 / level3) und startet Schleife.
-     * @param {*} levelRef Referenz auf Level (Vergleich mit globalen level2, level3)
-     */
-    static playThemeForLevel(levelRef) {
-        if (!this.unlocked) return;
-        this.stopMusic();
-        let idx = 0;
-        if (levelRef === window.level2) idx = 1;
-        if (levelRef === window.level3) idx = 2;
-        this.startThemePlaylist(idx);
-    }
-
-    /**
-     * Startet Themes als fortlaufende Playliste ab Index.
-     * Hält die Methode kurz, indem sie an Hilfsfunktionen delegiert.
-     * @param {number} [startIdx=0] Startindex
-     */
-    static startThemePlaylist(startIdx = 0) {
-        this.setPlaylistFromThemes();
-        if (!this.setPlaylistIndex(startIdx)) return;
-        this.playPlaylistIndex(this.playlistIdx);
-    }
-
-    /**
-     * Setzt die Playliste auf die Theme-Tracks.
+     * Selects and plays the theme music for the given level reference.
+     * @param {*} levelReference - Reference to the current level (e.g., window.level2, window.level3)
      * @returns {void}
      */
-    static setPlaylistFromThemes() {
-        this.playlist = this.tracks.themes;
+    static playThemeMusicForLevel(levelReference) {
+        if (!this.isAudioUnlocked) return;
+        this.stopMusicPlayback();
+        let themeIndex = 0;
+        if (levelReference === window.level2) themeIndex = 1;
+        if (levelReference === window.level3) themeIndex = 2;
+        this.startThemeMusicPlaylist(themeIndex);
     }
 
     /**
-     * Überprüft und wendet den Playlisten-Index an.
-     * @param {number} idx
-     * @returns {boolean} Wahr, wenn der Index gültig und angewendet ist.
+     * Starts the theme music playlist from the given index.
+     * @param {number} [startIndex=0] - The index to start the playlist from.
+     * @returns {void}
      */
-    static setPlaylistIndex(idx) {
-        if (!this.playlist.length) { this.playlistIdx = 0; return false; }
-        const n = this.playlist.length;
-        this.playlistIdx = ((idx % n) + n) % n;
+    static startThemeMusicPlaylist(startIndex = 0) {
+        this.setPlaylistToThemes();
+        if (!this.setPlaylistIndex(startIndex)) return;
+        this.playPlaylistAtIndex(this.currentPlaylistIndex);
+    }
+
+    /**
+     * Sets the current playlist to the theme music tracks.
+     * @returns {void}
+     */
+    static setPlaylistToThemes() {
+        this.currentPlaylist = this.musicTracks.themes;
+    }
+
+    /**
+     * Validates and applies the playlist index.
+     * @param {number} playlistIndex - The index to set.
+     * @returns {boolean} True if the index is valid and applied.
+     */
+    static setPlaylistIndex(playlistIndex) {
+        if (!this.currentPlaylist.length) {
+            this.currentPlaylistIndex = 0;
+            return false;
+        }
+        const playlistLength = this.currentPlaylist.length;
+        this.currentPlaylistIndex = ((playlistIndex % playlistLength) + playlistLength) % playlistLength;
         return true;
     }
 
     /**
-     * Spielt das Playlisten-Element am Index und verbindet onended, um voranzuschreiten.
-     * @param {number} i
+     * Plays the audio element at the given playlist index and sets up onended to play the next track.
+     * @param {number} playlistIndex - The index in the playlist to play.
      * @returns {void}
      */
-    static playPlaylistIndex(i) {
-        const a = this.playlist[i];
-        if (!a) return;
-        this.current = a;
-        a.currentTime = 0;
-        a.onended = () => this.playNextInPlaylist();
-        a.play().catch(() => {});
+    static playPlaylistAtIndex(playlistIndex) {
+        const audioElement = this.currentPlaylist[playlistIndex];
+        if (!audioElement) return;
+        this.currentAudioElement = audioElement;
+        audioElement.currentTime = 0;
+        audioElement.onended = () => this.playNextInPlaylist();
+        audioElement.play().catch(() => {});
     }
 
     /**
-     * Wechselt zum nächsten Playlisten-Element (mit Umwicklung) und spielt es.
+     * Advances to the next audio element in the playlist (with wrap-around) and plays it.
      * @returns {void}
      */
     static playNextInPlaylist() {
-        this.playlistIdx = (this.playlistIdx + 1) % this.playlist.length;
-        this.playPlaylistIndex(this.playlistIdx);
+        this.currentPlaylistIndex = (this.currentPlaylistIndex + 1) % this.currentPlaylist.length;
+        this.playPlaylistAtIndex(this.currentPlaylistIndex);
     }
 
     /**
-     * Setzt globalen Mute-Status für alle Audios.
-     * @param {boolean} m Neuer Mute-Status
+     * Sets the global mute state for all audio elements.
+     * @param {boolean} muteState - The new mute state.
+     * @returns {void}
      */
-    static setMuted(m) {
-        this.muted = m;
-        localStorage.setItem('kleinerheld-muted', JSON.stringify(m));
-        
-        const all = [];
-        if (this.tracks.menu) all.push(this.tracks.menu);
-        this.tracks.themes.forEach(t => t && all.push(t));
-        Object.values(this.sfx).forEach(s => s && all.push(s));
-        all.forEach(a => a.muted = m);
+    static setMuteState(muteState) {
+        this.isMuted = muteState;
+        localStorage.setItem('kleinerheld-muted', JSON.stringify(muteState));
+
+        const allAudioElements = [];
+        if (this.musicTracks.menu) allAudioElements.push(this.musicTracks.menu);
+        this.musicTracks.themes.forEach(themeAudioElement => themeAudioElement && allAudioElements.push(themeAudioElement));
+        Object.values(this.soundEffects).forEach(soundEffectAudioElement => soundEffectAudioElement && allAudioElements.push(soundEffectAudioElement));
+        allAudioElements.forEach(audioElement => audioElement.muted = muteState);
     }
 
     /**
-     * Toggle Mute an/aus.
-     * @returns {boolean} Neuer Status
+     * Toggles the mute state on or off.
+     * @returns {boolean} The new mute state.
      */
-    static toggleMute() {
-        this.setMuted(!this.muted);
-        return this.muted;
+    static toggleMuteState() {
+        this.setMuteState(!this.isMuted);
+        return this.isMuted;
     }
 
     /**
-     * Spielt einen Soundeffekt (klont Instanz für parallele Wiedergabe).
-     * @param {keyof AudioManager['sfx']} name Name des Effekts (z.B. 'sword')
+     * Plays a sound effect by name (clones the audio element for parallel playback).
+     * @param {keyof AudioManager['soundEffects']} soundEffectName - The name of the sound effect (e.g., 'sword').
+     * @returns {void}
      */
-    static playSfx(name) {
-        if (this.muted) return;
-        const a = this.sfx[name];
-        if (!a) return;
-        const inst = a.cloneNode(true);
-        inst.volume = this.volumes.sfx;
-        inst.muted = this.muted;
-        inst.play().catch(()=>{});
+    static playSoundEffect(soundEffectName) {
+        if (this.isMuted) return;
+        const soundEffectAudioElement = this.soundEffects[soundEffectName];
+        if (!soundEffectAudioElement) return;
+        const soundEffectInstance = soundEffectAudioElement.cloneNode(true);
+        soundEffectInstance.volume = this.volumeLevels.soundEffects;
+        soundEffectInstance.muted = this.isMuted;
+        soundEffectInstance.play().catch(() => {});
     }
 }
 

@@ -1,6 +1,6 @@
 class BossDemon extends MoveableObject {
     x = 100;
-    img = './assets/enemy/demon/Idle1.png';
+    imageSourcePath = './assets/enemy/demon/Idle1.png';
     scale = 2.1;
     width = 75;
     height = 150;
@@ -10,14 +10,14 @@ class BossDemon extends MoveableObject {
     maxHealth = 50;
     bossSoundRange = 1100;
 
-    // Hitbox
-    HitboxOffsetX = 20;
-    HitboxOffsetXRight = 0;
-    HitboxOffsetY = 70;
-    HitboxWidth = 60;
-    HitboxHeight = 80;
+    // Hitbox properties
+    hitboxOffsetLeft = 20;
+    hitboxOffsetRight = 0;
+    hitboxOffsetTop = 70;
+    hitboxWidth = 60;
+    hitboxHeight = 80;
 
-    // Statusflags
+    // Status flags
     isHurt = false;
     isDead = false;
     animationFinished = true;
@@ -28,17 +28,15 @@ class BossDemon extends MoveableObject {
     attackCooldown = 0.5;
     attackRange = 80;
     attackDamage = 20;
+
     state = 'run';
     animations = {};
     frameIndex = 0;
     frameDuration = 200;
 
-    /**
-     * @param {number} [groundY=520] Boden-Y zur Platzierung.
-     */
     constructor(groundY = 520) {
         super();
-        this.loadImage(this.img);
+        this.loadImage(this.imageSourcePath);
         this.x = 500 + Math.random() * 200;
         this.speed = 0.5 + Math.random() * 1.5;
         this.loadAnimations();
@@ -46,47 +44,56 @@ class BossDemon extends MoveableObject {
     }
 
     /**
-     * Lädt Frames aus globaler DEMON_IMAGES Struktur.
-     * Erwartetes Format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * Loads all animation frames from the global DEMON_IMAGES structure.
+     * Expected format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * @returns {void}
      */
     loadAnimations() {
-        for (let [state, frames] of Object.entries(DEMON_IMAGES)) {
-            this.animations[state] = frames.map(frame => {
-                let img = new Image();
-                img.src = frame.src;
-                return { img, width: frame.width, height: frame.height, offsetX: frame.offsetX, offsetY: frame.offsetY };
+        for (let [animationState, frameList] of Object.entries(DEMON_IMAGES)) {
+            this.animations[animationState] = frameList.map(frameData => {
+                const imageElement = new Image();
+                imageElement.src = frameData.src;
+                return {
+                    img: imageElement,
+                    width: frameData.width,
+                    height: frameData.height,
+                    offsetX: frameData.offsetX,
+                    offsetY: frameData.offsetY
+                };
             });
         }
     }
 
     /**
-     * Liefert aktuelles Frameobjekt oder null.
-     * @returns {{img:HTMLImageElement,width:number,height:number,offsetX:number,offsetY:number}|null}
+     * Returns the current frame object of the active animation.
+     * @returns {{img:HTMLImageElement, width:number, height:number, offsetX:number, offsetY:number}|null}
      */
     getCurrentFrame() {
-        const frames = this.animations[this.state];
-        if (!frames || frames.length === 0) return null;
-        return frames[this.frameIndex] || null;
+        const frameList = this.animations[this.state];
+        if (!frameList || frameList.length === 0) return null;
+        return frameList[this.frameIndex] || null;
     }
 
     /**
-     * Setzt Zustand; bei Wechsel oder reset wird frameIndex zurückgesetzt.
-     * @param {string} next Neuer Zustand
+     * Sets a new animation state. Optionally resets the frame index.
+     * @param {string} nextState - The new target animation state.
      * @param {{reset?:boolean}} [options]
+     * @returns {void}
      */
-    setState(next, { reset = false } = {}) {
-        if (this.state !== next || reset) {
-            this.state = next in this.animations ? next : 'idle';
+    setState(nextState, { reset = false } = {}) {
+        if (this.state !== nextState || reset) {
+            this.state = nextState in this.animations ? nextState : 'idle';
             this.frameIndex = 0;
         }
     }
 
     /**
-     * Aktualisiert State basierend auf Flags (keine Bewegung hier).
-     * Priorität: death > hurt > attack > run > idle.
-     * @param {number} dt Delta ms
+     * Updates the animation state based on status flags.
+     * Priority order: death > hurt > attack > run > idle.
+     * @param {number} deltaTime - Delta time in milliseconds.
+     * @returns {void}
      */
-    update(dt) {
+    update(deltaTime) {
         if (this.isDead) {
             this.setState('death');
         } else if (this.isHurt) {

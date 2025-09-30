@@ -234,6 +234,7 @@ class Character extends MoveableObject {
         if (!this.isAboveGround() && this.state !== 'jump') {
             this.speedY = -this.jumpPower;
             this.setState('jump', { reset: true });
+            AudioManager.playSfx?.('jump');
         }
     }
 

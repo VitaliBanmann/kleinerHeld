@@ -644,6 +644,7 @@ class Overlay {
      * @returns {void}
      */
     static handleRestart() {
+        AudioManager.playSfx?.('gameover');
         Overlay.resetGameState();
         try { if (typeof window.initLevel1 === 'function') window.initLevel1(); } catch {}
         if (window.world) { Level.load(window.world, window.level1); window.world.paused = false; }
@@ -653,6 +654,7 @@ class Overlay {
 
     /** Switches to the help screen. */
     static handleHelp(){ Overlay.state = 'help'; Overlay.syncDomVisibility(); }
+
     /** Goes back to the start screen. */
     static handleBack(){ Overlay.state = 'start'; Overlay.syncDomVisibility(); }
 
@@ -663,7 +665,7 @@ class Overlay {
     static handleHome(){
         if (window.world) window.world.paused = true;
         Overlay.state = 'start'; Overlay.syncDomVisibility();
-        try { AudioManager.stopAll?.(); } catch {}
+        try { AudioManager.stopMusic?.(); } catch {}
     }
 
     /**
@@ -672,7 +674,10 @@ class Overlay {
      * @returns {void}
      */
     static handleProceed() {
-        if (window.world && window.world.currentLevel === window.level3) { Overlay.state = 'final'; Overlay.syncDomVisibility(); return; }
+        AudioManager.playSfx?.('win');
+        if (window.world && window.world.currentLevel === window.level3) { 
+            Overlay.state = 'final'; Overlay.syncDomVisibility(); return; 
+        }
         if (typeof Overlay.onProceed === 'function') return Overlay.onProceed();
         const w = window.world; if (!w) return;
         if (w.currentLevel === window.level1) { try { window.initLevel2?.(); } catch {} Level.load(w, window.level2); }
@@ -681,4 +686,16 @@ class Overlay {
         w.paused = false; Overlay.state = 'none'; Overlay.syncDomVisibility();
         try { AudioManager.playThemeForLevel?.(w.currentLevel); } catch {}
     }
+
+static updatePreChecks() {
+  if (this.paused) return true;
+  if (this.character?.isDead && Overlay?.state !== 'dead') {
+    this.paused = true; 
+    Overlay.state = 'dead'; 
+    AudioManager.playSfx?.('gameover');
+    window.updatePauseIcon?.(); 
+    return true;
+  }
+  return false;
+}
 }

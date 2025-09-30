@@ -1,6 +1,6 @@
 class BossDragon extends MoveableObject {
     x = 100;
-    img = './assets/boss/2dragon/Idle1.png';
+    imageSourcePath = './assets/boss/2dragon/Idle1.png';
     scale = 2;
     width = 125;
     height = 150;
@@ -9,38 +9,31 @@ class BossDragon extends MoveableObject {
     health = 50;
     maxHealth = 50;
     bossSoundRange = 1000;
+    hitboxOffsetLeft = 0;
+    hitboxOffsetRight = 25;
+    hitboxOffsetTop = 75;
+    hitboxWidth = 125;
+    hitboxHeight = 75;
 
-    // Hitbox
-    HitboxOffsetX = 0;
-    HitboxOffsetXRight = 25;
-    HitboxOffsetY = 75;
-    HitboxWidth = 125;
-    HitboxHeight = 75;
-
-    // Statusflags
+    // Status flags
     isHurt = false;
     isDead = false;
     animationFinished = true;
     deathAnimationPlayed = false;
     deathAnimationComplete = false;
     isAttacking = false;
-
     attackCooldown = 0.5;
     attackRange = 100;
     attackDamage = 20;
     state = 'run';
+
     animations = {};
     frameIndex = 0;
     frameDuration = 200;
-
-    /**
-     * Konstruktor.
-     * Positioniert Boss relativ zum Boden und lädt Animationsframes.
-     * @param {number} [groundY=520] Y-Koordinate des Bodens (zum Platzieren des Sprites).
-     */
+    
     constructor(groundY = 520) {
         super();
-        this.loadImage(this.img);
+        this.loadImage(this.imageSourcePath);
         this.x = 500 + Math.random() * 200;
         this.speed = 0.5 + Math.random() * 1.5;
         this.loadAnimations();
@@ -48,47 +41,56 @@ class BossDragon extends MoveableObject {
     }
 
     /**
-     * Lädt alle Animationen aus globaler DRAGON_IMAGES Struktur.
-     * Erwartet Format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * Loads all animation frames from the global DRAGON_IMAGES structure.
+     * Expected format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * @returns {void}
      */
     loadAnimations() {
-        for (let [state, frames] of Object.entries(DRAGON_IMAGES)) {
-            this.animations[state] = frames.map(frame => {
-                const img = new Image();
-                img.src = frame.src;
-                return { img, width: frame.width, height: frame.height, offsetX: frame.offsetX, offsetY: frame.offsetY };
+        for (let [animationState, frameList] of Object.entries(DRAGON_IMAGES)) {
+            this.animations[animationState] = frameList.map(frameData => {
+                const imageElement = new Image();
+                imageElement.src = frameData.src;
+                return {
+                    img: imageElement,
+                    width: frameData.width,
+                    height: frameData.height,
+                    offsetX: frameData.offsetX,
+                    offsetY: frameData.offsetY
+                };
             });
         }
     }
 
     /**
-     * Liefert aktuelles Frame-Objekt der momentanen Animation.
-     * @returns {{img:HTMLImageElement,width:number,height:number,offsetX:number,offsetY:number}|null}
+     * Returns the current frame object of the active animation.
+     * @returns {{img:HTMLImageElement, width:number, height:number, offsetX:number, offsetY:number}|null}
      */
     getCurrentFrame() {
-        const frames = this.animations[this.state];
-        if (!frames || frames.length === 0) return null;
-        return frames[this.frameIndex] || null;
+        const frameList = this.animations[this.state];
+        if (!frameList || frameList.length === 0) return null;
+        return frameList[this.frameIndex] || null;
     }
 
     /**
-     * Setzt neuen Zustand (Animation). Bei Wechsel oder reset wird frameIndex auf 0 gesetzt.
-     * @param {string} next Zielzustand.
+     * Sets a new animation state. Optionally resets the frame index.
+     * @param {string} nextState - The new target animation state.
      * @param {{reset?:boolean}} [options]
+     * @returns {void}
      */
-    setState(next, { reset = false } = {}) {
-        if (this.state !== next || reset) {
-            this.state = next in this.animations ? next : 'idle';
+    setState(nextState, { reset = false } = {}) {
+        if (this.state !== nextState || reset) {
+            this.state = nextState in this.animations ? nextState : 'idle';
             this.frameIndex = 0;
         }
     }
 
     /**
-     * Aktualisiert Zustandslogik (ohne Positionslogik).
-     * Reihenfolge der Priorität: death > hurt > attack > run > idle.
-     * @param {number} dt Delta Time in ms.
+     * Updates the animation state based on status flags.
+     * Priority order: death > hurt > attack > run > idle.
+     * @param {number} deltaTime - Delta time in milliseconds.
+     * @returns {void}
      */
-    update(dt) {
+    update(deltaTime) {
         if (this.isDead) {
             this.setState('death');
         } else if (this.isHurt) {

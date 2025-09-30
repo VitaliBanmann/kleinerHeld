@@ -1,9 +1,9 @@
-let canvas;
-let world;
-let keyboard;
-let ctx;
+let canvasElement;
+let worldInstance;
+let keyboardInstance;
+let canvasContext;
 
-const BG_FIELDS = [
+const BACKGROUND_IMAGES_FIELDS = [
     './assets/background/field1_1920.jpg',
     './assets/background/field2_1920.jpg',
     './assets/background/field3_1920.jpg',
@@ -11,7 +11,7 @@ const BG_FIELDS = [
     './assets/background/field5_1920.jpg',
 ];
 
-const BG_FOREST = [
+const BACKGROUND_IMAGES_FOREST = [
     './assets/background/forest1_1920.jpg',
     './assets/background/forest2_1920.jpg',
     './assets/background/forest3_1920.jpg',
@@ -19,146 +19,147 @@ const BG_FOREST = [
     './assets/background/forest5_1920.jpg',
 ];
 
-let bgSet = BG_FIELDS;
-let bgIndex = 0;
-let bgTimer = null;
-let bgLayers = [];
-let levelRefLast = null;
-let fsLock = false;
+let currentBackgroundSet = BACKGROUND_IMAGES_FIELDS;
+let currentBackgroundIndex = 0;
+let backgroundRotationTimer = null;
+let backgroundLayerElements = [];
+let lastLevelReference = null;
+let fullscreenLock = false;
 
 /**
- * Wählt das passende Hintergrund-Set anhand des aktuellen Levels oder Overlay-Zustands.
- *
- * - Wenn das Start-Overlay aktiv ist, wird immer BG_FIELDS gewählt.
- * - Wenn das Level zu einem anderen Set wechselt, wird bgIndex zurückgesetzt.
- *
+ * Selects the appropriate background set based on the current level or overlay state.
+ * If the start overlay is active, BACKGROUND_IMAGES_FIELDS is always chosen.
+ * If the level changes to a different set, currentBackgroundIndex is reset.
  * @returns {void}
  */
-function pickBgSetForCurrentLevel() {
+function selectBackgroundSetForCurrentLevel() {
     if (window.Overlay?.state === 'start') {
-        if (bgSet !== BG_FIELDS) {
-            bgSet = BG_FIELDS;
-            bgIndex = 0;
+        if (currentBackgroundSet !== BACKGROUND_IMAGES_FIELDS) {
+            currentBackgroundSet = BACKGROUND_IMAGES_FIELDS;
+            currentBackgroundIndex = 0;
         }
         return;
     }
-    if (!world?.currentLevel) return;
+    if (!worldInstance?.currentLevel) return;
 
-    let newSet = (world.currentLevel === window.level1) ? BG_FIELDS : BG_FOREST;
-    if (newSet !== bgSet) {bgSet = newSet; bgIndex = 0;}
-    levelRefLast = world.currentLevel;
+    let newBackgroundSet = (worldInstance.currentLevel === window.level1) ? BACKGROUND_IMAGES_FIELDS : BACKGROUND_IMAGES_FOREST;
+    if (newBackgroundSet !== currentBackgroundSet) {
+        currentBackgroundSet = newBackgroundSet;
+        currentBackgroundIndex = 0;
+    }
+    lastLevelReference = worldInstance.currentLevel;
 }
 
 /**
  * Creates a new background layer by cloning from the <template id="bg-layer-tpl">.
- * The element is appended to body and tracked in bgLayers.
- *
- * @param {string} url - Image URL for the layer background.
+ * The element is appended to body and tracked in backgroundLayerElements.
+ * @param {string} imageUrl - Image URL for the layer background.
  * @returns {HTMLDivElement} The newly created layer element.
  */
-function createBgLayer(url) {
-  const tpl = document.getElementById('bg-layer-tpl');
-  const node = tpl?.content?.firstElementChild?.cloneNode(true) || document.createElement('div');
-  if (!node.classList.contains('bg-layer')) node.classList.add('bg-layer');
-  node.style.backgroundImage = `url('${url}')`;
-  document.body.appendChild(node);
-  bgLayers.push(node);
-  return /** @type {HTMLDivElement} */ (node);
+function createBackgroundLayer(imageUrl) {
+    const templateElement = document.getElementById('bg-layer-tpl');
+    const backgroundLayerElement = templateElement?.content?.firstElementChild?.cloneNode(true) || document.createElement('div');
+    if (!backgroundLayerElement.classList.contains('bg-layer')) backgroundLayerElement.classList.add('bg-layer');
+    backgroundLayerElement.style.backgroundImage = `url('${imageUrl}')`;
+    document.body.appendChild(backgroundLayerElement);
+    backgroundLayerElements.push(backgroundLayerElement);
+    return /** @type {HTMLDivElement} */ (backgroundLayerElement);
 }
 
 /**
  * Cross-fades to the next background.
- * - Preloads image to prevent flicker.
- * - Fades out previous layer, fades in new layer.
- * - Syncs body background when fade-in completes (optional).
- *
+ * Preloads image to prevent flicker.
+ * Fades out previous layer, fades in new layer.
+ * Syncs body background when fade-in completes (optional).
  * @returns {Promise<void>}
  */
-async function applyBackground() {
-  if (!bgSet.length) return;
-  const url = bgSet[bgIndex % bgSet.length];
-  await preloadImage(url);
-  const layer = createBgLayer(url);
+async function applyBackgroundImage() {
+    if (!currentBackgroundSet.length) return;
+    const imageUrl = currentBackgroundSet[currentBackgroundIndex % currentBackgroundSet.length];
+    await preloadImage(imageUrl);
+    const newLayerElement = createBackgroundLayer(imageUrl);
 
-  if (bgLayers.length > 1) {
-    const prev = bgLayers[bgLayers.length - 2];
-    layer.classList.add('fade-in-delayed');
-    startFadeOutPrevious(prev);
-  } else {
-    makeLayerInstant(layer);
-  }
-  attachFadeInFinalizer(layer, url);
+    if (backgroundLayerElements.length > 1) {
+        const previousLayerElement = backgroundLayerElements[backgroundLayerElements.length - 2];
+        newLayerElement.classList.add('fade-in-delayed');
+        startFadeOutPreviousLayer(previousLayerElement);
+    } else {
+        makeLayerVisibleInstantly(newLayerElement);
+    }
+    attachFadeInFinalizer(newLayerElement, imageUrl);
 }
 
 /**
  * Preloads an image. Resolves when loading finishes (errors are ignored).
- * @param {string} url
+ * @param {string} imageUrl - The image URL to preload.
  * @returns {Promise<void>}
  */
-function preloadImage(url) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
-    img.src = url;
-  });
+function preloadImage(imageUrl) {
+    return new Promise((resolve) => {
+        const imageElement = new Image();
+        imageElement.onload = () => resolve();
+        imageElement.onerror = () => resolve();
+        imageElement.src = imageUrl;
+    });
 }
 
 /**
  * Starts fade-out on a previous layer and removes it after animation end.
- * @param {HTMLDivElement} prev
+ * @param {HTMLDivElement} previousLayerElement - The previous background layer element.
  * @returns {void}
  */
-function startFadeOutPrevious(prev) {
-  prev.classList.remove('fade-in-delayed', 'fade-in-instant');
-  prev.classList.add('fade-out');
-  prev.addEventListener('animationend', () => {
-    prev.remove();
-    bgLayers = bgLayers.filter(l => l !== prev);
-  }, { once: true });
+function startFadeOutPreviousLayer(previousLayerElement) {
+    previousLayerElement.classList.remove('fade-in-delayed', 'fade-in-instant');
+    previousLayerElement.classList.add('fade-out');
+    previousLayerElement.addEventListener('animationend', () => {
+        previousLayerElement.remove();
+        backgroundLayerElements = backgroundLayerElements.filter(layer => layer !== previousLayerElement);
+    }, { once: true });
 }
 
 /**
  * Makes a layer visible immediately (no delayed fade-in).
- * @param {HTMLDivElement} layer
+ * @param {HTMLDivElement} layerElement - The background layer element.
  * @returns {void}
  */
-function makeLayerInstant(layer) {
-  layer.classList.remove('fade-in-delayed');
-  layer.classList.add('fade-in-instant');
+function makeLayerVisibleInstantly(layerElement) {
+    layerElement.classList.remove('fade-in-delayed');
+    layerElement.classList.add('fade-in-instant');
 }
 
 /**
  * After fade-in completes, sets the body's background-image for consistency.
- * @param {HTMLDivElement} layer
- * @param {string} url
+ * @param {HTMLDivElement} layerElement - The background layer element.
+ * @param {string} imageUrl - The image URL.
  * @returns {void}
  */
-function attachFadeInFinalizer(layer, url) {
-  layer.addEventListener('animationend', (e) => {
-    if (e.animationName === 'bgFadeIn') document.body.style.backgroundImage = `url('${url}')`;
-  }, { once: true });
+function attachFadeInFinalizer(layerElement, imageUrl) {
+    layerElement.addEventListener('animationend', (animationEvent) => {
+        if (animationEvent.animationName === 'bgFadeIn') {
+            document.body.style.backgroundImage = `url('${imageUrl}')`;
+        }
+    }, { once: true });
 }
 
 /**
  * Requests fullscreen on an element with vendor fallbacks.
- * @param {Element|null} el
+ * @param {Element|null} element - The element to request fullscreen on.
  * @returns {Promise<void>|null}
  */
-function requestFs(el) {
-  try {
-    if (el?.requestFullscreen) return el.requestFullscreen();
-    if (el?.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-  } catch (e) { throw e; }
-  return null;
+function requestFullscreenOnElement(element) {
+    try {
+        if (element?.requestFullscreen) return element.requestFullscreen();
+        if (element?.webkitRequestFullscreen) return element.webkitRequestFullscreen();
+    } catch (error) { throw error; }
+    return null;
 }
 
 /**
  * Returns whether the document is currently in fullscreen.
- * @returns {boolean}
+ * @returns {boolean} True if fullscreen is active, otherwise false.
  */
 window.isFullscreen = function() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
 };
 
 /**
@@ -166,10 +167,10 @@ window.isFullscreen = function() {
  * @returns {Promise<void>|null}
  */
 window.enterFullscreen = function() {
-  const elDoc = document.documentElement;
-  const elCanvas = document.getElementById('gameCanvas') || elDoc;
-  try { return requestFs(elDoc) || requestFs(elCanvas); }
-  catch { document.body.classList.toggle('pseudo-fs'); return null; }
+    const documentElement = document.documentElement;
+    const canvasElementOrDocument = document.getElementById('gameCanvas') || documentElement;
+    try { return requestFullscreenOnElement(documentElement) || requestFullscreenOnElement(canvasElementOrDocument); }
+    catch { document.body.classList.toggle('pseudo-fs'); return null; }
 };
 
 /**
@@ -177,29 +178,28 @@ window.enterFullscreen = function() {
  * @returns {Promise<void>|null}
  */
 window.exitFullscreen = function() {
-  try { return document.exitFullscreen?.() || document.webkitExitFullscreen?.() || null; }
-  catch { document.body.classList.toggle('pseudo-fs'); return null; }
+    try { return document.exitFullscreen?.() || document.webkitExitFullscreen?.() || null; }
+    catch { document.body.classList.toggle('pseudo-fs'); return null; }
 };
 
 /**
  * Toggles fullscreen with a simple lock and consistent icon updates.
- * Ensures ≤14 code lines; delegates to enter/exit helpers.
  * @returns {void}
  */
 window.toggleFullscreen = function() {
-  if (fsLock) return;
-  fsLock = true;
-  const done = () => { fsLock = false; window.updateFsIcon?.(); };
-  try {
-    if (!window.isFullscreen()) {
-      const p = window.enterFullscreen();
-      if (p?.catch) p.catch(() => document.body.classList.toggle('pseudo-fs')).finally(done);
-      else done();
-    } else {
-      const p = window.exitFullscreen();
-      if (p?.finally) p.finally(done); else done();
-    }
-  } catch { document.body.classList.toggle('pseudo-fs'); done(); }
+    if (fullscreenLock) return;
+    fullscreenLock = true;
+    const unlockAndUpdateIcon = () => { fullscreenLock = false; window.updateFullscreenIcon?.(); };
+    try {
+        if (!window.isFullscreen()) {
+            const promise = window.enterFullscreen();
+            if (promise?.catch) promise.catch(() => document.body.classList.toggle('pseudo-fs')).finally(unlockAndUpdateIcon);
+            else unlockAndUpdateIcon();
+        } else {
+            const promise = window.exitFullscreen();
+            if (promise?.finally) promise.finally(unlockAndUpdateIcon); else unlockAndUpdateIcon();
+        }
+    } catch { document.body.classList.toggle('pseudo-fs'); unlockAndUpdateIcon(); }
 };
 
 /**
@@ -207,13 +207,13 @@ window.toggleFullscreen = function() {
  * @returns {boolean} True if canvas/context are ready.
  */
 function setupOrientationAndCanvas() {
-  handleOrientationGate();
-  window.addEventListener('resize', handleOrientationGate);
-  window.addEventListener('orientationchange', handleOrientationGate);
-  canvas = document.getElementById('gameCanvas');
-  if (!canvas) { console.warn('gameCanvas missing in index.html'); return false; }
-  ctx = canvas.getContext('2d');
-  return true;
+    handleOrientationGate();
+    window.addEventListener('resize', handleOrientationGate);
+    window.addEventListener('orientationchange', handleOrientationGate);
+    canvasElement = document.getElementById('gameCanvas');
+    if (!canvasElement) { console.warn('gameCanvas missing in index.html'); return false; }
+    canvasContext = canvasElement.getContext('2d');
+    return true;
 }
 
 /**
@@ -221,14 +221,14 @@ function setupOrientationAndCanvas() {
  * @returns {Promise<void>}
  */
 async function setupSubsystems() {
-  keyboard = new Keyboard();
-  keyboard.mapEvents?.();
-  window.keyboard = keyboard;
+    keyboardInstance = new Keyboard();
+    keyboardInstance.mapEvents?.();
+    window.keyboard = keyboardInstance;
 
-  AudioManager.init?.();
-  AudioManager.startUserGestureHook?.();
-  world = new World(ctx, canvas, null);
-  window.world = world;
+    AudioManager.init?.();
+    AudioManager.startUserGestureHook?.();
+    worldInstance = new World(canvasContext, canvasElement, null);
+    window.world = worldInstance;
 }
 
 /**
@@ -236,18 +236,18 @@ async function setupSubsystems() {
  * @returns {void}
  */
 function setupBindings() {
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'KeyF') toggleFullscreen();
-    if (e.code === 'KeyP' && (Overlay.state === 'none' || Overlay.state === 'pause')) {
-      world.togglePause?.();
-    }
-  });
-  bindPress(document.getElementById('pause'), () => { window.world?.togglePause?.(); window.updatePauseIcon(); });
-  bindPress(document.getElementById('fullscreen'), async () => { await toggleFullscreen(); });
-  const soundBtn = document.getElementById('sound');
-  if (soundBtn) bindPress(soundBtn, () => { AudioManager.toggleMute?.(); window.updateSoundIcon(); });
-  document.addEventListener('fullscreenchange', window.updateFsIcon);
-  window.updatePauseIcon(); window.updateFsIcon(); window.updateSoundIcon();
+    document.addEventListener('keydown', (keyboardEvent) => {
+        if (keyboardEvent.code === 'KeyF') window.toggleFullscreen();
+        if (keyboardEvent.code === 'KeyP' && (Overlay.state === 'none' || Overlay.state === 'pause')) {
+            worldInstance.togglePause?.();
+        }
+    });
+    bindPressEvent(document.getElementById('pause'), () => { window.world?.togglePause?.(); window.updatePauseIcon(); });
+    bindPressEvent(document.getElementById('fullscreen'), async () => { await window.toggleFullscreen(); });
+    const soundButtonElement = document.getElementById('sound');
+    if (soundButtonElement) bindPressEvent(soundButtonElement, () => { AudioManager.toggleMute?.(); window.updateSoundIcon(); });
+    document.addEventListener('fullscreenchange', window.updateFullscreenIcon);
+    window.updatePauseIcon(); window.updateFullscreenIcon(); window.updateSoundIcon();
 }
 
 /**
@@ -256,9 +256,9 @@ function setupBindings() {
  * @returns {void}
  */
 function setupOverlayClick() {
-  Overlay.state = 'start';
-  setupCanvasMouseTracking();
-  setupCanvasClickHandling();
+    Overlay.state = 'start';
+    setupCanvasMouseTracking();
+    setupCanvasClickHandling();
 }
 
 /**
@@ -267,68 +267,68 @@ function setupOverlayClick() {
  * @returns {void}
  */
 function setupCanvasMouseTracking() {
-  canvas.addEventListener('mousemove', onCanvasMouseMove);
+    canvasElement.addEventListener('mousemove', onCanvasMouseMove);
 }
 
 /**
  * Handles mousemove event on canvas and sets cursor style.
- * @param {MouseEvent} e
+ * @param {MouseEvent} mouseEvent - The mousemove event.
  * @returns {void}
  */
-function onCanvasMouseMove(e) {
-  const { x, y } = getCanvasMousePos(e);
-  const isHovering = isHoveringCanvasButton(x, y);
-  canvas.style.cursor = isHovering ? 'pointer' : 'default';
+function onCanvasMouseMove(mouseEvent) {
+    const { x, y } = getCanvasMousePosition(mouseEvent);
+    const isHovering = isHoveringCanvasButton(x, y);
+    canvasElement.style.cursor = isHovering ? 'pointer' : 'default';
 }
 
 /**
  * Returns mouse coordinates relative to canvas.
- * @param {MouseEvent} e
- * @returns {{x:number, y:number}}
+ * @param {MouseEvent} mouseEvent - The mouse event.
+ * @returns {{x:number, y:number}} The mouse position relative to the canvas.
  */
-function getCanvasMousePos(e) {
-  const r = canvas.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top };
+function getCanvasMousePosition(mouseEvent) {
+    const boundingRect = canvasElement.getBoundingClientRect();
+    return { x: mouseEvent.clientX - boundingRect.left, y: mouseEvent.clientY - boundingRect.top };
 }
 
 /**
  * Checks if mouse is over any HUD or Overlay button.
- * @param {number} x
- * @param {number} y
- * @returns {boolean}
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @returns {boolean} True if hovering over a button.
  */
 function isHoveringCanvasButton(x, y) {
-  if (isHoveringHudButton(x, y)) return true;
-  if (isHoveringOverlayButton(x, y)) return true;
-  return false;
+    if (isHoveringHudButton(x, y)) return true;
+    if (isHoveringOverlayButton(x, y)) return true;
+    return false;
 }
 
 /**
  * Checks if mouse is over any HUD button.
- * @param {number} x
- * @param {number} y
- * @returns {boolean}
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @returns {boolean} True if hovering over a HUD button.
  */
 function isHoveringHudButton(x, y) {
-  if (!HUD.btnAreas) return false;
-  for (const b of HUD.btnAreas) {
-    if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return true;
-  }
-  return false;
+    if (!HUD.btnAreas) return false;
+    for (const buttonArea of HUD.btnAreas) {
+        if (x >= buttonArea.x && x <= buttonArea.x + buttonArea.w && y >= buttonArea.y && y <= buttonArea.y + buttonArea.h) return true;
+    }
+    return false;
 }
 
 /**
  * Checks if mouse is over any Overlay button.
- * @param {number} x
- * @param {number} y
- * @returns {boolean}
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @returns {boolean} True if hovering over an overlay button.
  */
 function isHoveringOverlayButton(x, y) {
-  if (!Overlay._buttons) return false;
-  for (const btn of Overlay._buttons) {
-    if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) return true;
-  }
-  return false;
+    if (!Overlay._buttons) return false;
+    for (const overlayButton of Overlay._buttons) {
+        if (x >= overlayButton.x && x <= overlayButton.x + overlayButton.w && y >= overlayButton.y && y <= overlayButton.y + overlayButton.h) return true;
+    }
+    return false;
 }
 
 /**
@@ -337,81 +337,82 @@ function isHoveringOverlayButton(x, y) {
  * @returns {void}
  */
 function setupCanvasClickHandling() {
-  canvas.addEventListener('click', (e) => {
-    const r = canvas.getBoundingClientRect();
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    if (HUD.handleClick?.(x, y, world)) return;
-    if (Overlay.handleClick?.(x, y)) return;
-    Overlay.handleActionPrimary?.();
-  });
+    canvasElement.addEventListener('click', (mouseEvent) => {
+        const boundingRect = canvasElement.getBoundingClientRect();
+        const x = mouseEvent.clientX - boundingRect.left;
+        const y = mouseEvent.clientY - boundingRect.top;
+        if (HUD.handleClick?.(x, y, worldInstance)) return;
+        if (Overlay.handleClick?.(x, y)) return;
+        Overlay.handleActionPrimary?.();
+    });
 }
 
 /**
  * Starts menu music and background rotation.
  * @returns {void}
  */
-function finishInit() {
-  AudioManager.playMenu?.();
-  startBackgroundRotation();
+function finishInitialization() {
+    AudioManager.playMenu?.();
+    startBackgroundRotation();
 }
 
 /**
- * App entry point: small orchestrator that delegates to short helpers (≤14 lines).
+ * App entry point: small orchestrator that delegates to short helpers.
  * @async
  * @returns {Promise<void>}
  */
 async function init() {
-  if (!setupOrientationAndCanvas()) return;
-  await setupSubsystems();
-  setupBindings();
-  setupOverlayClick();
-  finishInit();
+    if (!setupOrientationAndCanvas()) return;
+    await setupSubsystems();
+    setupBindings();
+    setupOverlayClick();
+    finishInitialization();
 }
 
 /**
  * Updates orientation-dependent UI.
- * - Shows a rotate hint for touch devices in portrait mode.
- * - Toggles body class to block game/cpanel when portrait on touch.
+ * Shows a rotate hint for touch devices in portrait mode.
+ * Toggles body class to block game/cpanel when portrait on touch.
  * @returns {void}
  */
 function handleOrientationGate() {
-  const isTouch = window.matchMedia?.('(pointer: coarse)')?.matches;
-  const isPortrait = window.matchMedia?.('(orientation: portrait)')?.matches;
-  const hint = document.querySelector('.rotate-hint');
-  const show = !!(isTouch && isPortrait);
-  if (hint) hint.style.display = show ? 'flex' : 'none';
-  document.body.classList.toggle('portrait-blocked', show);
+    const isTouchDevice = window.matchMedia?.('(pointer: coarse)')?.matches;
+    const isPortraitOrientation = window.matchMedia?.('(orientation: portrait)')?.matches;
+    const rotateHintElement = document.querySelector('.rotate-hint');
+    const shouldShowHint = !!(isTouchDevice && isPortraitOrientation);
+    if (rotateHintElement) rotateHintElement.style.display = shouldShowHint ? 'flex' : 'none';
+    document.body.classList.toggle('portrait-blocked', shouldShowHint);
 }
 
 /**
  * Binds a "press" handler to an element (click for mouse, pointerup for touch).
  * Prevents default to avoid double triggers on mobile.
- * @param {Element|null} el - Target element.
+ * @param {Element|null} element - Target element.
  * @param {() => void} handler - Callback to execute on press.
  * @returns {void}
  */
-function bindPress(el, handler) {
-  if (!el) return;
-  const coarse = window.matchMedia?.('(pointer: coarse)')?.matches;
-  const evt = coarse ? 'pointerup' : 'click';
-  el.addEventListener(evt, (e) => { e.preventDefault(); handler(); });
+function bindPressEvent(element, handler) {
+    if (!element) return;
+    const isCoarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches;
+    const eventType = isCoarsePointer ? 'pointerup' : 'click';
+    element.addEventListener(eventType, (event) => { event.preventDefault(); handler(); });
 }
 
 /**
  * Starts periodic background rotation.
- * - Picks set for current level or overlay.
- * - Applies initial background.
- * - Rotates every 60s (cleans previous timer).
+ * Picks set for current level or overlay.
+ * Applies initial background.
+ * Rotates every 60s (cleans previous timer).
  * @returns {void}
  */
 function startBackgroundRotation() {
-  pickBgSetForCurrentLevel();
-  if (bgTimer) clearInterval(bgTimer);
-  applyBackground();
-  bgTimer = setInterval(() => {
-    bgIndex = (bgIndex + 1) % bgSet.length;
-    applyBackground();
-  }, 60000);
+    selectBackgroundSetForCurrentLevel();
+    if (backgroundRotationTimer) clearInterval(backgroundRotationTimer);
+    applyBackgroundImage();
+    backgroundRotationTimer = setInterval(() => {
+        currentBackgroundIndex = (currentBackgroundIndex + 1) % currentBackgroundSet.length;
+        applyBackgroundImage();
+    }, 60000);
 }
 
 /**
@@ -419,9 +420,9 @@ function startBackgroundRotation() {
  * @returns {void}
  */
 function stopBackgroundRotation() {
-  if (!bgTimer) return;
-  clearInterval(bgTimer);
-  bgTimer = null;
+    if (!backgroundRotationTimer) return;
+    clearInterval(backgroundRotationTimer);
+    backgroundRotationTimer = null;
 }
 
 /**
@@ -429,17 +430,25 @@ function stopBackgroundRotation() {
  * @returns {void}
  */
 window.updatePauseIcon = function() {
-  const el = document.getElementById('pauseIcon');
-  if (el) el.src = (window.world?.paused) ? './assets/buttons/play.png' : './assets/buttons/pause.png';
+    const pauseIconElement = document.getElementById('pauseIcon');
+    if (pauseIconElement) {
+        pauseIconElement.src = (window.world?.paused)
+            ? './assets/buttons/play.png'
+            : './assets/buttons/pause.png';
+    }
 };
 
 /**
  * Syncs the fullscreen icon based on document fullscreen state.
  * @returns {void}
  */
-window.updateFsIcon = function() {
-  const el = document.getElementById('fsIcon') || document.getElementById('fullscreenIcon');
-  if (el) el.src = (window.isFullscreen?.()) ? './assets/buttons/fullscreen_exit.png' : './assets/buttons/fullscreen.png';
+window.updateFullscreenIcon = function() {
+    const fullscreenIconElement = document.getElementById('fsIcon') || document.getElementById('fullscreenIcon');
+    if (fullscreenIconElement) {
+        fullscreenIconElement.src = (window.isFullscreen?.())
+            ? './assets/buttons/fullscreen_exit.png'
+            : './assets/buttons/fullscreen.png';
+    }
 };
 
 /**
@@ -447,6 +456,10 @@ window.updateFsIcon = function() {
  * @returns {void}
  */
 window.updateSoundIcon = function() {
-  const el = document.getElementById('soundIcon');
-  if (el) el.src = (window.AudioManager?.muted) ? './assets/buttons/sound_off.png' : './assets/buttons/sound_on.png';
+    const soundIconElement = document.getElementById('soundIcon');
+    if (soundIconElement) {
+        soundIconElement.src = (window.AudioManager?.muted)
+            ? './assets/buttons/sound_off.png'
+            : './assets/buttons/sound_on.png';
+    }
 };

@@ -63,7 +63,7 @@ function debugDraw(ctx, canvas, world) {
     if (world.boss?.isAttacking) drawAtk(world.boss, '#ffab00');
 
   } catch (e) {
-    // Schluckt Debug-Fehler absichtlich
+    
   } finally {
     ctx.restore();
   }

@@ -1,4 +1,4 @@
-const BIRD_CROW_DEF = {
+const BIRD_CROW_DEFINITION = {
     src: './assets/world/birds/crow.png',
     frameWidth: 32,
     frameHeight: 32,
@@ -8,7 +8,7 @@ const BIRD_CROW_DEF = {
     scale: 1
 };
 
-const BIRD_VULTURE_DEF = {
+const BIRD_VULTURE_DEFINITION = {
     src: './assets/world/birds/vulture.png',
     frameWidth: 48,
     frameHeight: 48,
@@ -19,55 +19,70 @@ const BIRD_VULTURE_DEF = {
 };
 
 class Bird extends MoveableObject {
-    constructor(def, direction, worldWidth, worldHeight) {
+    birdDefinition;
+    scale;
+    direction;
+    speed;
+    worldWidth;
+    worldHeight;
+    imageElement;
+    animator;
+    time;
+    sinePhase;
+    sineAmplitude;
+    sineFrequency;
+    baseYPosition;
+
+    constructor(birdDefinition, direction, worldWidth, worldHeight) {
         super();
-        this.def = def;
-        this.scale = def.scale ?? 1;
+        this.birdDefinition = birdDefinition;
+        this.scale = birdDefinition.scale ?? 1;
         this.direction = !!direction;
         this.speed = 0.05 + Math.random() * 0.05;
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
-        this.img = new Image();
-        this.img.src = def.src;
+        this.imageElement = new Image();
+        this.imageElement.src = birdDefinition.src;
 
         /**
-         * Animator für Frame-Animation.
+         * Animator for frame-based animation.
          * @type {SpriteAnimator}
          */
         this.animator = new SpriteAnimator({
-            image: this.img,
-            frameWidth: def.frameWidth,
-            frameHeight: def.frameHeight,
-            frameCount: def.frames,
-            frameDuration: def.frameDuration
+            image: this.imageElement,
+            frameWidth: birdDefinition.frameWidth,
+            frameHeight: birdDefinition.frameHeight,
+            frameCount: birdDefinition.frames,
+            frameDuration: birdDefinition.frameDuration
         });
 
-        this.t = Math.random() * 1000;
-        this.phase = Math.random() * Math.PI * 2;
-        this.amp = 6 + Math.random() * 10;
-        this.freq = (2 * Math.PI) / (1800 + Math.random() * 1800);
-        this.baseY = 100;
+        this.time = Math.random() * 1000;
+        this.sinePhase = Math.random() * Math.PI * 2;
+        this.sineAmplitude = 6 + Math.random() * 10;
+        this.sineFrequency = (2 * Math.PI) / (1800 + Math.random() * 1800);
+        this.baseYPosition = 100;
         this.respawn();
     }
 
     /**
-     * Aktualisiert Position, Animation und Sinusflug.
-     * @param {number} dt Delta Time in ms (Fallback 16).
+     * Updates the bird's position, animation, and sinusoidal flight path.
+     * @param {number} deltaTime - Delta time in milliseconds (default 16).
+     * @returns {void}
      */
-    update(dt) {
-        if (!dt) dt = 16;
-        const dx = this.speed * dt;
-        this.x += this.direction ? -dx : dx;
+    update(deltaTime) {
+        if (!deltaTime) deltaTime = 16;
+        const deltaX = this.speed * deltaTime;
+        this.x += this.direction ? -deltaX : deltaX;
 
-        this.t += dt;
-        this.y = this.baseY + Math.sin(this.phase + this.t * this.freq) * this.amp;
+        this.time += deltaTime;
+        this.y = this.baseYPosition + Math.sin(this.sinePhase + this.time * this.sineFrequency) * this.sineAmplitude;
 
-        this.animator.update(dt);
+        this.animator.update(deltaTime);
     }
 
     /**
-     * Prüft ob der Vogel außerhalb des sicht-/relevanten Bereichs liegt.
-     * @returns {boolean} true wenn außerhalb.
+     * Checks if the bird is outside the visible or relevant area of the world.
+     * @returns {boolean} True if the bird is out of bounds.
      */
     isOutOfWorld() {
         const margin = 64;
@@ -75,20 +90,21 @@ class Bird extends MoveableObject {
     }
 
     /**
-     * Setzt Position & Flugbahn neu (Respawn am linken oder rechten Rand).
+     * Resets the bird's position and flight path (respawn at left or right edge).
+     * @returns {void}
      */
     respawn() {
-        const hMin = 60;
-        const hMax = Math.max(120, this.worldHeight / 2);
-        this.baseY = Math.random() * (hMax - hMin) + hMin;
-        this.phase = Math.random() * Math.PI * 2;
+        const minHeight = 60;
+        const maxHeight = Math.max(120, this.worldHeight / 2);
+        this.baseYPosition = Math.random() * (maxHeight - minHeight) + minHeight;
+        this.sinePhase = Math.random() * Math.PI * 2;
 
         if (this.direction) {
             this.x = this.worldWidth + 50;
         } else {
             this.x = -50;
         }
-        this.y = this.baseY;
+        this.y = this.baseYPosition;
     }
 }
 

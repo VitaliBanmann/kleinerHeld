@@ -1,6 +1,8 @@
 class BossTroll extends MoveableObject {
     x = 100;
-    img = './assets/boss/1trolls/Troll_IDLE0.png';
+
+    imageSourcePath = './assets/boss/1trolls/Troll_IDLE0.png';
+
     scale = 0.3;
     width = 125;
     height = 150;
@@ -10,14 +12,14 @@ class BossTroll extends MoveableObject {
     maxHealth = 30;
     bossSoundRange = 800;
 
-    // Hitbox
-    HitboxOffsetX = 180;
-    HitboxOffsetXRight = 60;
-    HitboxOffsetY = -375;
-    HitboxWidth = 400;
-    HitboxHeight = 520;
+    // Hitbox properties
+    hitboxOffsetLeft = 180;
+    hitboxOffsetRight = 60;
+    hitboxOffsetTop = -375;
+    hitboxWidth = 400;
+    hitboxHeight = 520;
 
-    // Statusflags
+    // Status flags
     isHurt = false;
     isDead = false;
     animationFinished = true;
@@ -28,18 +30,19 @@ class BossTroll extends MoveableObject {
     attackCooldown = 0.5;
     attackRange = 100;
     attackDamage = 20;
+
     state = 'run';
     animations = {};
     frameIndex = 0;
     frameDuration = 200;
 
     /**
-     * Konstruktor – positioniert Boss auf fester X (Ende der Map) und lädt Animationen.
-     * @param {number} [groundY=520] Boden-Y zum Platzieren.
+     * Constructs a new BossTroll instance, positions it at the end of the map, and loads animations.
+     * @param {number} [groundY=520] - The ground Y position for placement.
      */
     constructor(groundY = 520) {
         super();
-        this.loadImage(this.img);
+        this.loadImage(this.imageSourcePath);
         this.x = 10600;
         this.speed = 0.5 + Math.random() * 1.5;
         this.loadAnimations();
@@ -47,53 +50,56 @@ class BossTroll extends MoveableObject {
     }
 
     /**
-     * Lädt alle Animations-Frames aus globaler TROLL_IMAGES Struktur.
-     * Erwartetes Format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * Loads all animation frames from the global TROLL_IMAGES structure.
+     * Expected format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * @returns {void}
      */
     loadAnimations() {
-        for (let [state, frames] of Object.entries(TROLL_IMAGES)) {
-            this.animations[state] = frames.map(frame => {
-                const img = new Image();
-                img.src = frame.src;
+        for (let [animationState, frameList] of Object.entries(TROLL_IMAGES)) {
+            this.animations[animationState] = frameList.map(frameData => {
+                const imageElement = new Image();
+                imageElement.src = frameData.src;
                 return {
-                    img,
-                    width: frame.width,
-                    height: frame.height,
-                    offsetX: frame.offsetX,
-                    offsetY: frame.offsetY
+                    img: imageElement,
+                    width: frameData.width,
+                    height: frameData.height,
+                    offsetX: frameData.offsetX,
+                    offsetY: frameData.offsetY
                 };
             });
         }
     }
 
     /**
-     * Liefert aktuelles Frame der aktiven Animation.
-     * @returns {{img:HTMLImageElement,width:number,height:number,offsetX:number,offsetY:number}|null}
+     * Returns the current frame object of the active animation.
+     * @returns {{img:HTMLImageElement, width:number, height:number, offsetX:number, offsetY:number}|null}
      */
     getCurrentFrame() {
-        const frames = this.animations[this.state];
-        if (!frames || frames.length === 0) return null;
-        return frames[this.frameIndex] || null;
+        const frameList = this.animations[this.state];
+        if (!frameList || frameList.length === 0) return null;
+        return frameList[this.frameIndex] || null;
     }
 
     /**
-     * Setzt neuen Zustand (Animation). Optionaler Reset erzwingt Neustart des Frame-Index.
-     * @param {string} next Neuer Zielzustand.
+     * Sets a new animation state. Optionally resets the frame index.
+     * @param {string} nextState - The new target animation state.
      * @param {{reset?:boolean}} [options]
+     * @returns {void}
      */
-    setState(next, { reset = false } = {}) {
-        if (this.state !== next || reset) {
-            this.state = next in this.animations ? next : 'idle';
+    setState(nextState, { reset = false } = {}) {
+        if (this.state !== nextState || reset) {
+            this.state = nextState in this.animations ? nextState : 'idle';
             this.frameIndex = 0;
         }
     }
 
     /**
-     * Aktualisiert den State anhand Statusflags.
-     * Reihenfolge: death > hurt > attack > run > idle.
-     * @param {number} dt Delta Time (ms).
+     * Updates the animation state based on status flags.
+     * Priority order: death > hurt > attack > run > idle.
+     * @param {number} deltaTime - Delta time in milliseconds.
+     * @returns {void}
      */
-    update(dt) {
+    update(deltaTime) {
         if (this.isDead) {
             this.setState('death');
         } else if (this.isHurt) {
