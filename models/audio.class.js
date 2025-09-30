@@ -6,7 +6,7 @@ class AudioManager {
     static muted = false;
     static volumes = { music: 0.4, sfx: 0.9 };
     static tracks = { menu: null, themes: [] };
-    static sfx = { sword: null, spear: null, bossdemon: null, bossdragon: null, bosstroll: null };
+    static sfx = { sword: null, spear: null, bossdemon: null, bossdragon: null, bosstroll: null, death: null };
 
     /**
      * Initializes audio assets and applies volumes/loop settings.
@@ -60,6 +60,7 @@ class AudioManager {
         this.sfx.bossdemon = new Audio('./assets/audio/demon.mp3');
         this.sfx.bossdragon = new Audio('./assets/audio/dragon.mp3');
         this.sfx.bosstroll = new Audio('./assets/audio/troll.mp3');
+        this.sfx.death = new Audio('./assets/audio/death-sound.mp3');
         Object.values(this.sfx).forEach(a => a.volume = this.volumes.sfx);
     }
 

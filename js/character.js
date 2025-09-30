@@ -78,3 +78,5 @@ CHARACTER_IMAGES = {
     {"src": "./assets/charakter/Run/run8.png", "width": 40, "height": 52, "offsetX": 20, "offsetY": 26}
     ],
 };
+
+window.CHARACTER_IMAGES = CHARACTER_IMAGES;

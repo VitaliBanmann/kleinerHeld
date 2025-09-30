@@ -9,8 +9,8 @@ class EnemySkeleton extends MoveableObject {
 
     x = 300;
 
-    health = 25;
-    maxHealth = 25;
+    health = 20;
+    maxHealth = 20;
 
     // Hitbox
     HitboxOffsetX = 58;

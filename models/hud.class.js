@@ -164,7 +164,25 @@ class HUD {
 
     /** Draws the filled portion and centered label. */
     static drawHealthFillAndLabel(ctx, x, y, w, h, r, fillW, fillColor, label, S) {
-        if (fillW > 0) { ctx.fillStyle = fillColor; HUD.roundRect(ctx, x, y, fillW, h, r, true, false); }
+        if (fillW > 0) { 
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.clip();
+            
+            ctx.fillStyle = fillColor;
+            HUD.roundRect(ctx, x, y, fillW, h, r, true, false);
+            ctx.restore();
+        }
         HUD.textSpaced(ctx, label, x + w / 2, y + h - 7, { size: 18, weight: "bold", align: "center", color: S.colors.text });
     }
 

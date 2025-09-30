@@ -13,6 +13,11 @@ World.prototype.draw = function() {
     drawBackgrounds(this);
     drawBirds(this);
     drawActors(this);
+
+    const charDmg = Combat.damageForLevel?.(this.character?.weaponLevel || 0) || 10;
+    for (const e of this.enemies) drawEnemyHealthBar(this.ctx, e, charDmg);
+    if (this.boss) drawEnemyHealthBar(this.ctx, this.boss, charDmg);
+
   } catch (e) {} finally { this.ctx.restore(); }
   try { HUD.draw(this.ctx, this.canvas, this); } catch (e) {}
   try { debugDraw(this.ctx, this.canvas, this); } catch (e) {}
@@ -72,7 +77,9 @@ World.prototype.drawSprite = function(bird) {
  * @param {HTMLImageElement} img Image element
  * @returns {boolean} True if complete and has natural dimensions
  */
-function isImgReady(img){ return img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0; }
+function isImgReady(img){
+  return img instanceof HTMLImageElement && img.complete && img.naturalWidth > 0;
+}
 
 /**
  * Draws parallax background tiles with optional cloud drift and wrap-around.
@@ -155,5 +162,78 @@ function tryDrawStatic(world, mo) {
   ctx.save();
   if (flip) { ctx.translate((mo.x || 0) + w, (mo.y || 0)); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, w, h); }
   else { ctx.drawImage(img, (mo.x || 0), (mo.y || 0), w, h); }
+  ctx.restore();
+}
+
+/**
+ * Draws an enemy's health bar above the enemy or boss.
+ * Splits into helpers for frame, fill, and text.
+ * @param {CanvasRenderingContext2D} ctx The canvas rendering context
+ * @param {Object} obj The enemy or boss object
+ * @param {number} charDmg Character damage value for calculating hits
+ * @returns {void}
+ */
+function drawEnemyHealthBar(ctx, obj, charDmg) {
+  if (!obj || typeof obj.health !== 'number' || typeof obj.maxHealth !== 'number') return;
+  const r = Collision.rect(obj);
+  const barW = Math.max(40, r.w * 0.8), barH = 7;
+  const x = r.x + (r.w - barW) / 2, y = r.y - 18;
+  const hp = Math.max(0, obj.health), maxHp = Math.max(1, obj.maxHealth);
+  const hits = Math.ceil(hp / Math.max(1, charDmg));
+  const color = getHealthBarColor(hits);
+  drawHealthBarFrame(ctx, x, y, barW, barH);
+  drawHealthBarFill(ctx, x, y, barW, barH, hp, maxHp, color);
+}
+
+/**
+ * Returns the color for the health bar based on hits needed to kill.
+ * @param {number} hits Number of hits needed to kill
+ * @returns {string} Color hex code
+ */
+function getHealthBarColor(hits) {
+  if (hits === 1) return '#d32f2f';
+  if (hits === 2) return '#fbc02d';
+  return '#3fae2a';
+}
+
+/**
+ * Draws the health bar frame (background and border).
+ * @param {CanvasRenderingContext2D} ctx Canvas context
+ * @param {number} x Left X position
+ * @param {number} y Top Y position
+ * @param {number} w Width
+ * @param {number} h Height
+ * @returns {void}
+ */
+function drawHealthBarFrame(ctx, x, y, w, h) {
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#222';
+  ctx.fillStyle = '#444';
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 4);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Draws the filled portion of the health bar.
+ * @param {CanvasRenderingContext2D} ctx Canvas context
+ * @param {number} x Left X position
+ * @param {number} y Top Y position
+ * @param {number} w Width
+ * @param {number} h Height
+ * @param {number} hp Current health
+ * @param {number} maxHp Maximum health
+ * @param {string} color Fill color
+ * @returns {void}
+ */
+function drawHealthBarFill(ctx, x, y, w, h, hp, maxHp, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w * (hp / maxHp), h, 4);
+  ctx.fill();
   ctx.restore();
 }

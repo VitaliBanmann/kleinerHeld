@@ -9,7 +9,7 @@ World.prototype.update = function(dt) {
   if (this.updatePreChecks()) return;
   this.handlePlayerInputs();
   this.updatePlayer(dt);
-  this.updatePowerups(dt);                 // <-- add
+  this.updatePowerups(dt);
   this.updateCameraAndClouds(dt);
   this.updateEnemies(dt);
   this.updateBoss(dt);
@@ -116,11 +116,14 @@ World.prototype.updateCoins = function(dt) {
 
 /**
  * Checks whether the character reached level end and triggers transition.
+ * Only allows level end if boss is dead or doesn't exist.
  * @this {World}
  * @returns {void}
  */
 World.prototype.checkLevelEnd = function() {
   if (this.switching) return;
+  if (this.boss && !this.boss.isDead) return;
+  
   const a = Collision.rect(this.character);
   const b = Collision.rect(this.levelEndObject);
   if (Collision.intersects(a, b)) Level.handleEnd(this);
@@ -139,27 +142,27 @@ World.prototype.handleCleanupAndRespawns = function(dt) {
 
 /**
  * Smooth camera tracking with mild look-ahead and clamped bounds.
- * ≤14 lines version.
- * @this {World}
+ ** @this {World}
  * @returns {void}
  */
 World.prototype.updateCamera = function() {
-  const c = this.character; if (!c || !this.canvas) return;
-  const prev = this.cameraFocusRatio ?? 0.5;
-  const targetFocus = keyboard?.RIGHT ? 1/3 : (keyboard?.LEFT ? 1/2 : prev);
-  this.cameraFocusRatio = prev + (targetFocus - prev) * 0.25;
-  const sc = Number(c.scale) || 1;
-  const cw = (c.HitboxWidth ?? c.width ?? 0) * sc;
-  const center = c.x + cw / 2, view = this.canvas.width;
-  let worldX = (this.levelWidth <= view) ? 0 : Math.max(0, Math.min(center - view * this.cameraFocusRatio, this.levelWidth - view));
-  const desired = -worldX;
-  if (isNaN(this.camera_x)) this.camera_x = desired;
-  else { const k = 0.15; this.camera_x += (desired - this.camera_x) * k; if (Math.abs(desired - this.camera_x) < 0.5) this.camera_x = desired; }
+    const c = this.character; 
+    if (!c || !this.canvas) return;
+    
+    const prev = this.cameraFocusRatio ?? 0.5;
+    const targetFocus = keyboard?.RIGHT ? 1/3 : (keyboard?.LEFT ? 1/2 : prev);
+    this.cameraFocusRatio = prev + (targetFocus - prev) * 0.25;
+    const sc = Number(c.scale) || 1;
+    const cw = (c.HitboxWidth ?? c.width ?? 0) * sc;
+    const center = c.x + cw / 2, view = this.canvas.width;
+    let worldX = (this.levelWidth <= view) ? 0 : Math.max(0, Math.min(center - view * this.cameraFocusRatio, this.levelWidth - view));
+    const desired = -worldX;
+    if (isNaN(this.camera_x)) this.camera_x = desired;
+    else { const k = 0.15; this.camera_x += (desired - this.camera_x) * k; if (Math.abs(desired - this.camera_x) < 0.5) this.camera_x = desired; }
 };
 
 /**
  * Updates cloud drift/parallax. Initializes per-layer drift lazily.
- * ≤14 lines version.
  * @this {World}
  * @param {number} dt
  * @returns {void}

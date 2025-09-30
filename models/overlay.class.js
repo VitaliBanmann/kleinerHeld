@@ -24,6 +24,45 @@ class Overlay {
     }
 
     /**
+     * Screen definition for the start screen.
+     * @returns {{title:string,lines:string[],buttons:{id:string,label:string}[]}}
+     */
+    static scrStart(){
+      return {
+        title: 'Kleiner Held',
+        lines: ['Sammle Münzen und besiege alle Gegner!'],
+        buttons: [
+          { id: 'start', label: 'Spiel starten' },
+          { id: 'help', label: 'Steuerung' },
+          { id: 'hint', label: 'Tipps' }
+        ]
+      };
+    }
+
+    /**
+     * Screen definition for the hints/tips screen.
+     * @returns {{title:string,lines:string[],buttons:{id:string,label:string}[]}}
+     */
+    static scrHint(){
+      return {
+        title: 'Spieltipps',
+        lines: [
+          '',
+          'Kaufe dir von dem Kopfgeld Upgrades:',
+          '',
+          'Waffenupgrades (1) verbessern deinen Angriff (mehr Schaden)',
+          'Lucky (2) erhöht die Droprate von Münzen',
+          'Unverwundbarkeit (3) macht dich für 3 Sekunden unverwundbar,',
+          'hat aber eine Abklingzeit von 1 Minute.',
+          '',
+          'Herzen kaufen mit (W), wenn du 50 Münzen hast, kannst du dir ein Herz kaufen.',
+          'Erneutes drücken heilt dich. Wenn weniger als 30 Lebenspunkte fehlen, kaufst du ein weiteres Herz.'
+        ],
+        buttons: [{ id: 'back', label: 'Zurück' }]
+      };
+    }
+
+    /**
      * Builds the available overlay screens (static parts).
      * Dynamic lines are injected by withDynamicLines() during show().
      * @returns {Record<string, {title:string,lines:string[],buttons:{id:string,label:string}[]}>}
@@ -33,6 +72,7 @@ class Overlay {
         return {
             start: Overlay.scrStart(),
             help: Overlay.scrHelp(P),
+            hint: Overlay.scrHint(),
             mapChange: Overlay.scrSimple('Level geschafft', [], [{ id: 'proceed', label: 'Weiter' }]),
             final: Overlay.scrSimple('Danke fürs Spielen!', [], [
                 { id: 'start', label: 'Nochmal spielen' }, { id: 'home', label: 'Home' }
@@ -307,17 +347,25 @@ class Overlay {
 
     /**
      * Dispatches a button id to the respective handler.
-     * @param {'resume'|'start'|'restart'|'help'|'back'|'home'|'proceed'} id Button action id
+     * @param {'resume'|'start'|'restart'|'help'|'hint'|'back'|'home'|'proceed'} id Button action id
      * @returns {void}
      */
     static buttonAction(id) {
-        if (id === 'resume') return Overlay.handleResume();
-        if (id === 'start') return Overlay.handleStart();
-        if (id === 'restart') return Overlay.handleRestart();
-        if (id === 'help') return Overlay.handleHelp();
-        if (id === 'back') return Overlay.handleBack();
-        if (id === 'home') return Overlay.handleHome();
-        if (id === 'proceed') return Overlay.handleProceed();
+      switch (id) {
+        case 'resume': Overlay.handleResume(); break;
+        case 'start': Overlay.handleStart(); break;
+        case 'restart': Overlay.handleRestart(); break;
+        case 'help': Overlay.handleHelp(); break;
+        case 'hint': Overlay.handleHint(); break;
+        case 'back': Overlay.handleBack(); break;
+        case 'home': Overlay.handleHome(); break;
+        case 'proceed': Overlay.handleProceed(); break;
+      }
+    }
+
+    /** Switches to the hints screen. */
+    static handleHint() {
+      Overlay.state = 'hint';
     }
 
     /**
@@ -360,7 +408,7 @@ class Overlay {
     static scrHelp(P){ return Overlay.scrSimple('Tastaturbelegung', [
         'a = links   d = rechts', 'Springen: Space', 'Angriff: e oder q',
         `Herz kaufen/heilen (W): ${P.heart} Coins`, `Verbesserungen (1/2/3): je ${P.weapon} Coins`
-    ], [{ id:'start', label:'Spiel starten' }, { id:'back', label:'Zurück' }]); }
+    ], [{ id:'start', label:'Spiel starten' }, { id:'back', label:'Zurück' }, { id:'hint', label:'Tipps' }]); }
 
     /**
      * Screen definition for the pause screen.

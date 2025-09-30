@@ -7,8 +7,8 @@ class EnemyLizard extends MoveableObject {
     speed = 1;
     x = 300;
 
-    health = 20;
-    maxHealth = 20;
+    health = 18;
+    maxHealth = 18;
 
     // Hitbox
     HitboxOffsetX = 30;

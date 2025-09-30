@@ -252,10 +252,91 @@ function setupBindings() {
 
 /**
  * Sets up overlay interactions on the canvas and sets start state.
+ * Configures mouse cursor changes and click handling for overlay buttons.
  * @returns {void}
  */
 function setupOverlayClick() {
   Overlay.state = 'start';
+  setupCanvasMouseTracking();
+  setupCanvasClickHandling();
+}
+
+/**
+ * Sets up mouse movement tracking on canvas to change cursor style.
+ * Shows pointer cursor when hovering over overlay or HUD buttons, default otherwise.
+ * @returns {void}
+ */
+function setupCanvasMouseTracking() {
+  canvas.addEventListener('mousemove', onCanvasMouseMove);
+}
+
+/**
+ * Handles mousemove event on canvas and sets cursor style.
+ * @param {MouseEvent} e
+ * @returns {void}
+ */
+function onCanvasMouseMove(e) {
+  const { x, y } = getCanvasMousePos(e);
+  const isHovering = isHoveringCanvasButton(x, y);
+  canvas.style.cursor = isHovering ? 'pointer' : 'default';
+}
+
+/**
+ * Returns mouse coordinates relative to canvas.
+ * @param {MouseEvent} e
+ * @returns {{x:number, y:number}}
+ */
+function getCanvasMousePos(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+/**
+ * Checks if mouse is over any HUD or Overlay button.
+ * @param {number} x
+ * @param {number} y
+ * @returns {boolean}
+ */
+function isHoveringCanvasButton(x, y) {
+  if (isHoveringHudButton(x, y)) return true;
+  if (isHoveringOverlayButton(x, y)) return true;
+  return false;
+}
+
+/**
+ * Checks if mouse is over any HUD button.
+ * @param {number} x
+ * @param {number} y
+ * @returns {boolean}
+ */
+function isHoveringHudButton(x, y) {
+  if (!HUD.btnAreas) return false;
+  for (const b of HUD.btnAreas) {
+    if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return true;
+  }
+  return false;
+}
+
+/**
+ * Checks if mouse is over any Overlay button.
+ * @param {number} x
+ * @param {number} y
+ * @returns {boolean}
+ */
+function isHoveringOverlayButton(x, y) {
+  if (!Overlay._buttons) return false;
+  for (const btn of Overlay._buttons) {
+    if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) return true;
+  }
+  return false;
+}
+
+/**
+ * Sets up click event handling on canvas for HUD and overlay interactions.
+ * Routes clicks to HUD first, then overlay buttons, then primary overlay actions.
+ * @returns {void}
+ */
+function setupCanvasClickHandling() {
   canvas.addEventListener('click', (e) => {
     const r = canvas.getBoundingClientRect();
     const x = e.clientX - r.left, y = e.clientY - r.top;
