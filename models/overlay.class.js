@@ -49,14 +49,16 @@ class Overlay {
         lines: [
           '',
           'Kaufe dir von dem Kopfgeld Upgrades:',
-          '',
           'Waffenupgrades (1) verbessern deinen Angriff (mehr Schaden)',
           'Lucky (2) erhöht die Droprate von Münzen',
           'Unverwundbarkeit (3) macht dich für 3 Sekunden unverwundbar,',
           'hat aber eine Abklingzeit von 1 Minute.',
           '',
           'Herzen kaufen mit (W), wenn du 50 Münzen hast, kannst du dir ein Herz kaufen.',
-          'Erneutes drücken heilt dich. Wenn weniger als 30 Lebenspunkte fehlen, kaufst du ein weiteres Herz.'
+          'Erneutes drücken heilt dich. Wenn weniger als 30 Lebenspunkte fehlen, kaufst du ein weiteres Herz.',
+          '',
+          'Farbe der Lebensbalken der Feinde zeigen an, wie oft du sie noch treffen musst.',
+          'Rot = ein Schlag, Gelb = zwei Schläge, Grün = mehr als zwei Schläge.',
         ],
         buttons: [{ id: 'back', label: 'Zurück' }]
       };
