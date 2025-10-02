@@ -97,7 +97,35 @@ class Overlay {
         const screens = Overlay.getScreens();
         let screen = Overlay.withDynamicLines(screens[Overlay.state], Overlay.state);
         if (!screen) return;
+        Overlay.ensureButtonsExist(canvas, screen);
         Overlay.drawScreen(ctx, canvas, screen);
+    }
+
+    /**
+     * Ensures button hit boxes exist even before first render.
+     * @param {HTMLCanvasElement} canvas Target canvas
+     * @param {{buttons:{id:string,label:string}[]}} screen Screen definition
+     * @returns {void}
+     */
+    static ensureButtonsExist(canvas, screen) {
+        if (!screen?.buttons || screen.buttons.length === 0) {
+            Overlay._buttons = [];
+            return;
+        }
+        
+        const lay = Overlay.layoutForScreen(canvas, screen);
+        const btnW = 200, btnH = 44, gap = 30;
+        const totalW = screen.buttons.length * btnW + (screen.buttons.length - 1) * gap;
+        const startX = (canvas.width - totalW) / 2;
+        const y = lay.buttonsTopY + 20;
+        
+        Overlay._buttons = screen.buttons.map((b, i) => ({
+            id: b.id,
+            x: startX + i * (btnW + gap),
+            y: y,
+            w: btnW,
+            h: btnH
+        }));
     }
 
     /**
@@ -105,7 +133,7 @@ class Overlay {
      * @returns {boolean}
      */
     static isBlocking(){
-        return ['start','help','pause','dead','mapChange','final'].includes(Overlay.state);
+        return ['start','help','hint','pause','dead','mapChange','final'].includes(Overlay.state);
     }
 
     /**
@@ -311,7 +339,13 @@ class Overlay {
      * @returns {boolean} True if a button was clicked
      */
     static handleClick(x, y) {
-        for (const b of (Overlay._buttons || [])) {
+        // Wichtig: Prüfen ob Overlay überhaupt aktiv ist
+        if (!Overlay.isBlocking()) return false;
+        
+        // Prüfen ob _buttons existiert und gefüllt ist
+        if (!Overlay._buttons || Overlay._buttons.length === 0) return false;
+        
+        for (const b of Overlay._buttons) {
             if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
                 Overlay.buttonAction(b.id);
                 return true;
@@ -367,7 +401,33 @@ class Overlay {
 
     /** Switches to the hints screen. */
     static handleHint() {
-      Overlay.state = 'hint';
+      Overlay.setState('hint');
+    }
+
+    /** Resumes the world and hides the overlay. */
+    static handleResume() {
+        if (window.world) { window.world.paused = false; Overlay.setState('none'); }
+        Overlay.syncDomVisibility();
+    }
+
+    /** Switches to the help screen. */
+    static handleHelp(){ 
+        Overlay.setState('help');
+        Overlay.syncDomVisibility(); 
+    }
+
+    /** Goes back to the start screen. */
+    static handleBack(){ 
+        Overlay.setState('start');
+        Overlay.syncDomVisibility(); 
+    }
+
+    /** Returns to the start screen and stops audio; leaves world paused. */
+    static handleHome(){
+        if (window.world) window.world.paused = true;
+        Overlay.setState('start');
+        Overlay.syncDomVisibility();
+        try { AudioManager.stopMusic?.(); } catch {}
     }
 
     /**
@@ -410,7 +470,7 @@ class Overlay {
     static scrHelp(P){ return Overlay.scrSimple('Tastaturbelegung', [
         'a = links   d = rechts', 'Springen: Space', 'Angriff: e oder q',
         `Herz kaufen/heilen (W): ${P.heart} Coins`, `Verbesserungen (1/2/3): je ${P.weapon} Coins`
-    ], [{ id:'start', label:'Spiel starten' }, { id:'back', label:'Zurück' }, { id:'hint', label:'Tipps' }]); }
+    ], [{ id:'back', label:'Zurück' }, { id:'hint', label:'Tipps' }]); }
 
     /**
      * Screen definition for the pause screen.
@@ -616,15 +676,6 @@ class Overlay {
     }
 
     /**
-     * Resumes the world and hides the overlay.
-     * @returns {void}
-     */
-    static handleResume() {
-        if (window.world) { window.world.paused = false; Overlay.state = 'none'; }
-        Overlay.syncDomVisibility();
-    }
-    
-    /**
      * Starts or restarts the game at level 1 and hides the overlay.
      * Initializes level1 if available and plays its theme.
      * @returns {void}
@@ -650,22 +701,6 @@ class Overlay {
         if (window.world) { Level.load(window.world, window.level1); window.world.paused = false; }
         Overlay.state = 'none'; Overlay.syncDomVisibility();
         try { AudioManager.playThemeForLevel?.(window.world.currentLevel); } catch {}
-    }
-
-    /** Switches to the help screen. */
-    static handleHelp(){ Overlay.state = 'help'; Overlay.syncDomVisibility(); }
-
-    /** Goes back to the start screen. */
-    static handleBack(){ Overlay.state = 'start'; Overlay.syncDomVisibility(); }
-
-    /**
-     * Returns to the start screen and stops audio; leaves world paused.
-     * @returns {void}
-     */
-    static handleHome(){
-        if (window.world) window.world.paused = true;
-        Overlay.state = 'start'; Overlay.syncDomVisibility();
-        try { AudioManager.stopMusic?.(); } catch {}
     }
 
     /**
@@ -698,4 +733,20 @@ static updatePreChecks() {
   }
   return false;
 }
+
+/**
+     * Sets the overlay state and immediately ensures buttons exist.
+     * @param {string} newState - The new overlay state
+     * @returns {void}
+     */
+    static setState(newState) {
+        Overlay.state = newState;
+        
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) return;
+        
+        const screens = Overlay.getScreens();
+        const screen = Overlay.withDynamicLines(screens[newState], newState);
+        if (screen) Overlay.ensureButtonsExist(canvas, screen);
+    }
 }

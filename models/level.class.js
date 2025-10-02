@@ -129,7 +129,7 @@ class Level {
         world.birds = [];
         const ys = [], hMin = 60, hMax = Math.max(120, world.canvas.height / 2);
         for (let i = 0; i < world.birdsCount; i++) {
-            const def = Math.random() < 0.75 ? BIRD_CROW_DEF : BIRD_VULTURE_DEF;
+            const def = Math.random() < 0.75 ? BIRD_CROW_DEFINITION : BIRD_VULTURE_DEFINITION;
             const direction = Math.random() < 0.5;
             const bird = new Bird(def, direction, world.levelWidth, world.canvas.height);
             const marginX = 80, span = world.levelWidth + 2 * marginX;

@@ -33,21 +33,56 @@ let fullscreenLock = false;
  * @returns {void}
  */
 function selectBackgroundSetForCurrentLevel() {
-    if (window.Overlay?.state === 'start') {
-        if (currentBackgroundSet !== BACKGROUND_IMAGES_FIELDS) {
-            currentBackgroundSet = BACKGROUND_IMAGES_FIELDS;
-            currentBackgroundIndex = 0;
-        }
+    if (shouldUseFieldsForStartOverlay()) {
+        switchToFieldsIfNeeded();
         return;
     }
     if (!worldInstance?.currentLevel) return;
+    switchBackgroundSetForLevel();
+}
 
-    let newBackgroundSet = (worldInstance.currentLevel === window.level1) ? BACKGROUND_IMAGES_FIELDS : BACKGROUND_IMAGES_FOREST;
+/**
+ * Checks if the start overlay is active and requires fields background.
+ * @returns {boolean} True if start overlay is active
+ */
+function shouldUseFieldsForStartOverlay() {
+    return window.Overlay?.state === 'start';
+}
+
+/**
+ * Switches to FIELDS background set if not already active.
+ * Resets background index when switching.
+ * @returns {void}
+ */
+function switchToFieldsIfNeeded() {
+    if (currentBackgroundSet !== BACKGROUND_IMAGES_FIELDS) {
+        currentBackgroundSet = BACKGROUND_IMAGES_FIELDS;
+        currentBackgroundIndex = 0;
+    }
+}
+
+/**
+ * Selects background set based on current level and switches if needed.
+ * Level 1 uses FIELDS, other levels use FOREST.
+ * @returns {void}
+ */
+function switchBackgroundSetForLevel() {
+    const newBackgroundSet = determineBackgroundSetForLevel();
     if (newBackgroundSet !== currentBackgroundSet) {
         currentBackgroundSet = newBackgroundSet;
         currentBackgroundIndex = 0;
     }
     lastLevelReference = worldInstance.currentLevel;
+}
+
+/**
+ * Determines which background set to use based on current level.
+ * @returns {string[]} BACKGROUND_IMAGES_FIELDS or BACKGROUND_IMAGES_FOREST
+ */
+function determineBackgroundSetForLevel() {
+    return (worldInstance.currentLevel === window.level1) 
+        ? BACKGROUND_IMAGES_FIELDS 
+        : BACKGROUND_IMAGES_FOREST;
 }
 
 /**
@@ -256,7 +291,7 @@ function setupBindings() {
  * @returns {void}
  */
 function setupOverlayClick() {
-    Overlay.state = 'start';
+    Overlay.setState('start');
     setupCanvasMouseTracking();
     setupCanvasClickHandling();
 }
@@ -282,13 +317,22 @@ function onCanvasMouseMove(mouseEvent) {
 }
 
 /**
- * Returns mouse coordinates relative to canvas.
+ * Returns mouse coordinates relative to canvas (scaled to canvas dimensions).
  * @param {MouseEvent} mouseEvent - The mouse event.
  * @returns {{x:number, y:number}} The mouse position relative to the canvas.
  */
 function getCanvasMousePosition(mouseEvent) {
     const boundingRect = canvasElement.getBoundingClientRect();
-    return { x: mouseEvent.clientX - boundingRect.left, y: mouseEvent.clientY - boundingRect.top };
+    const clickX = mouseEvent.clientX - boundingRect.left;
+    const clickY = mouseEvent.clientY - boundingRect.top;
+    
+    const scaleX = canvasElement.width / boundingRect.width;
+    const scaleY = canvasElement.height / boundingRect.height;
+    
+    return { 
+        x: clickX * scaleX, 
+        y: clickY * scaleY 
+    };
 }
 
 /**
@@ -333,17 +377,23 @@ function isHoveringOverlayButton(x, y) {
 
 /**
  * Sets up click event handling on canvas for HUD and overlay interactions.
- * Routes clicks to HUD first, then overlay buttons, then primary overlay actions.
+ * Routes clicks to HUD first, then overlay buttons.
+ * Transforms coordinates for responsive scaling.
  * @returns {void}
  */
 function setupCanvasClickHandling() {
     canvasElement.addEventListener('click', (mouseEvent) => {
         const boundingRect = canvasElement.getBoundingClientRect();
-        const x = mouseEvent.clientX - boundingRect.left;
-        const y = mouseEvent.clientY - boundingRect.top;
+        const clickX = mouseEvent.clientX - boundingRect.left;
+        const clickY = mouseEvent.clientY - boundingRect.top;
+        const scaleX = canvasElement.width / boundingRect.width;
+        const scaleY = canvasElement.height / boundingRect.height;
+        const x = clickX * scaleX;
+        const y = clickY * scaleY;
+        
         if (HUD.handleClick?.(x, y, worldInstance)) return;
+        
         if (Overlay.handleClick?.(x, y)) return;
-        Overlay.handleActionPrimary?.();
     });
 }
 

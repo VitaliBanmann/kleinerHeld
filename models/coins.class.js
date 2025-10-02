@@ -6,15 +6,17 @@ class Coin extends MoveableObject {
         gold:   { value: 100, path: './assets/coin/gold.png' }
     };
 
-    /** Config: boss coin drop counts. */
     static BOSS_DROP = { base: 3, luckyBonus: 2 };
 
     /**
-     * Spawnt mehrere Coins nahe einer Position.
-     * @param {Object} world Welt (enthält coins[], groundY, levelWidth)
-     * @param {number} x Basis-X
-     * @param {number} y Basis-Y (Treffer-/Todesposition)
-     * @param {number} [count=1] Anzahl Münzen
+     * Spawns multiple coins near a given position with random horizontal spread.
+     * Coins are added to world.coins array and start with upward velocity.
+     * @static
+     * @param {Object} world - World instance containing coins array, groundY, and levelWidth
+     * @param {number} x - Base X coordinate for spawning
+     * @param {number} y - Base Y coordinate (typically hit/death position)
+     * @param {number} [count=1] - Number of coins to spawn
+     * @returns {void}
      */
     static spawnNear(world, x, y, count = 1) {
         if (!world) return;
@@ -32,36 +34,35 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Konstruktor.
-     * @param {string} [typeKey='copper'] Schlüssel aus Coin.TYPES
-     * @param {Object} [world] Welt-Referenz (für groundY)
+     * Creates a new Coin instance.
+     * @param {string} [typeKey='copper'] - Key from Coin.TYPES defining coin type
+     * @param {Object} [world] - World reference for accessing groundY
      */
     constructor(typeKey = 'copper', world) {
         super();
         const def = Coin.TYPES[typeKey] || Coin.TYPES.copper;
+        
         this.typeKey = typeKey;
         this.value = def.value;
         this.world = world || null;
-
         this.width = 32;
         this.height = 32;
         this.scale = 2;
-
         this.speedY = 0;
         this.acceleration = 0.4;
 
-        // Bobbing-Parameter
         this.bobPeriodMs = 20000;
         this.bobAmp = 20;
         this.bobBaseY = null;
         this.bobT = 0;
+
         this.loadImage(def.path);
     }
 
     /**
-     * Aktualisiert Physik (Fallen) oder Bobbing.
-     * Splits into helpers to remain short.
-     * @param {number} dt Delta time in ms (clamped).
+     * Updates coin physics (falling or bobbing) based on delta time.
+     * Handles gravity-based falling until ground contact, then switches to bobbing.
+     * @param {number} dt - Delta time in milliseconds (clamped internally)
      * @returns {void}
      */
     update(dt) {
@@ -72,9 +73,9 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Normalizes delta time to a sane range.
-     * @param {number} dt
-     * @returns {number}
+     * Normalizes delta time to a safe range to prevent physics instability.
+     * @param {number} dt - Raw delta time
+     * @returns {number} Clamped delta time between 16 and 100 ms
      */
     normalizeDt(dt) {
         let dtMs = (typeof dt === 'number' && isFinite(dt)) ? dt : 16;
@@ -83,10 +84,11 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Performs falling step; snaps to ground and initializes bobbing.
-     * @param {number} dtMs
-     * @param {number} groundY
-     * @returns {boolean} True if falling logic handled this frame.
+     * Performs falling physics step with gravity and ground collision.
+     * Snaps coin to ground when landing and initializes bobbing state.
+     * @param {number} dtMs - Normalized delta time in milliseconds
+     * @param {number} groundY - Ground Y coordinate
+     * @returns {boolean} True if falling logic was applied this frame
      */
     updateFalling(dtMs, groundY) {
         if (this.y < groundY || this.speedY !== 0) {
@@ -102,9 +104,10 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Applies bobbing motion around the base Y.
-     * @param {number} dtMs
-     * @param {number} groundY
+     * Applies sinusoidal bobbing motion around the base Y position.
+     * Uses triangular wave function for smooth up-down animation.
+     * @param {number} dtMs - Normalized delta time in milliseconds
+     * @param {number} groundY - Ground Y coordinate (fallback for baseY)
      * @returns {void}
      */
     updateBobbing(dtMs, groundY) {
@@ -116,9 +119,11 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Prüft Spieler-Kollisionen; eingesammelte Coins erhöhen Spieler-Werte.
-     * Entfernt gesammelte Coins aus world.coins.
-     * @param {Object} world Welt mit character und coins[]
+     * Checks for player-character collision with all coins and collects them.
+     * Collected coins increment character counters and are removed from world.
+     * @static
+     * @param {Object} world - World instance with character and coins array
+     * @returns {void}
      */
     static collect(world) {
         const c = world?.character; if (!c) return;
@@ -127,11 +132,12 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Iterates coins, applies pickups on collision, returns remaining coins.
-     * @param {Object} world
-     * @param {{x:number,y:number,w:number,h:number}} crect
-     * @param {Object} c Character reference (counters are increased)
-     * @returns {Coin[]} Remaining coins
+     * Iterates all coins, detects collisions, applies pickup effects and filters.
+     * @static
+     * @param {Object} world - World instance
+     * @param {{x:number,y:number,w:number,h:number}} crect - Character collision rectangle
+     * @param {Object} c - Character instance (receives coin value increments)
+     * @returns {Coin[]} Array of coins that were not collected
      */
     static collectAndFilter(world, crect, c) {
         const remaining = [];
@@ -144,9 +150,10 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Applies coin value to character counters (coins and allcoins).
-     * @param {any} c Character
-     * @param {Coin} coin
+     * Applies coin value to character's coin counters (current and lifetime total).
+     * @static
+     * @param {any} c - Character instance with coins and allcoins properties
+     * @param {Coin} coin - Coin being collected
      * @returns {void}
      */
     static applyCoinPickup(c, coin) {
@@ -155,7 +162,14 @@ class Coin extends MoveableObject {
         c.allcoins = (c.allcoins || 0) + val;
     }
 
-    /** Computes drop count (enemy: 1/2, boss: configurable). */
+    /**
+     * Computes coin drop count based on enemy type and lucky powerup status.
+     * Regular enemies drop 1 coin (2 with lucky), bosses drop configured amounts.
+     * @static
+     * @param {Object} world - World instance with character and lucky powerup state
+     * @param {boolean} boss - Whether the defeated entity is a boss
+     * @returns {number} Number of coins to drop
+     */
     static computeDropCount(world, boss) {
         const lucky = !!world?.character?.luckyPowerup;
         if (!boss) return lucky ? 2 : 1;
@@ -164,11 +178,13 @@ class Coin extends MoveableObject {
     }
 
     /**
-     * Spawns coins when an enemy or boss dies.
-     * For enemies: 1 (2 with Lucky). For bosses: BOSS_DROP.base (+luckyBonus with Lucky).
-     * @param {Object} world
-     * @param {any} enemy
-     * @param {{boss?:boolean}} [opts]
+     * Spawns coins when an enemy or boss is defeated.
+     * Drop count varies by entity type and lucky powerup status.
+     * @static
+     * @param {Object} world - World instance
+     * @param {any} enemy - Defeated enemy/boss instance with position data
+     * @param {{boss?:boolean}} [opts={}] - Options object, set boss:true for boss drops
+     * @returns {void}
      */
     static spawnForEnemy(world, enemy, opts = {}) {
         if (!world || !enemy) return;
