@@ -116,23 +116,23 @@ class HUD {
      * @param {Object} world - The world object.
      */
     static draw(ctx, canvas, world) {
-        const c = world?.character ?? {};
-        const coins         = c.coins ?? 0;
-        const hearts        = c.hearts ?? 0;
-        const weaponLevel   = c.weaponLevel ?? 0;
-        const lucky         = !!c.luckyPowerup;
-        const invuln        = !!c.invulnPowerup;
-        const invulnActive  = !!c.invulnActive;
-        const invulnCooldown= c.invulnCooldown ?? 0;
-        const invulnTimer   = c.invulnTimer ?? 0;
-        const health        = c.health ?? 0;
-        const maxHealth     = c.maxHealth ?? 100;
+        const character = world?.character ?? {};
+        const totalCoins = character.coins ?? 0;
+        const totalHearts = character.hearts ?? 0;
+        const weaponLevel = character.weaponLevel ?? 0;
+        const hasLuckyPowerup = !!character.luckyPowerup;
+        const hasInvulnerability = !!character.invulnPowerup;
+        const isInvulnerabilityActive = !!character.invulnActive;
+        const invulnerabilityCooldown = character.invulnCooldown ?? 0;
+        const invulnerabilityTimer = character.invulnTimer ?? 0;
+        const currentHealth = character.health ?? 0;
+        const maxHealth = character.maxHealth ?? 100;
 
         ctx.save();
-        HUD.drawHealthBar(ctx, canvas, health, maxHealth);
-        HUD.drawHearts(ctx, canvas, hearts, health, maxHealth);
-        HUD.drawPowerups(ctx, canvas, weaponLevel, lucky, invuln, invulnActive, invulnCooldown, invulnTimer);
-        HUD.drawCoinsAndButtons(ctx, canvas, coins);
+        HUD.drawHealthBar(ctx, canvas, currentHealth, maxHealth);
+        HUD.drawHearts(ctx, canvas, totalHearts, currentHealth, maxHealth);
+        HUD.drawPowerups(ctx, canvas, weaponLevel, hasLuckyPowerup, hasInvulnerability, isInvulnerabilityActive, invulnerabilityCooldown, invulnerabilityTimer);
+        HUD.drawCoinsAndButtons(ctx, canvas, totalCoins);
         ctx.restore();
     }
 

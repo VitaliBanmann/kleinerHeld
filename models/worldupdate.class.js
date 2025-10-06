@@ -27,6 +27,10 @@ World.prototype.update = function(dt) {
 World.prototype.updatePreChecks = function() {
   if (this.paused) return true;
   if (this.character?.isDead && Overlay?.state !== 'dead') {
+    if (!this._deathSoundPlayed) {
+      AudioManager.playSfx?.('death');
+      this._deathSoundPlayed = true;
+    }
     this.paused = true; Overlay.state = 'dead'; window.updatePauseIcon?.(); return true;
   }
   return false;

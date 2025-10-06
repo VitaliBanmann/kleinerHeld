@@ -12,7 +12,6 @@ class Character extends MoveableObject {
     health = 100;
     maxHealth = 100;
 
-    // Coins & Powerups
     coins = 0;
     allcoins = 0;
     hearts = 0;
@@ -23,10 +22,8 @@ class Character extends MoveableObject {
     invulnCooldown = 0;
     invulnTimer = 0;
 
-    // Attack
     attackRange = 50;
 
-    // Animation
     imageCache = {};
     currentImage = 0;
     state = 'idle';
@@ -39,17 +36,15 @@ class Character extends MoveableObject {
         attack_extra: 70,
         run: 100
     };
-    animAcc = 0;
-    animTimer = null;
+    animationAccumulator = 0;
+    animationTimer = null;
 
-    // Status flags
     isHurt = false;
     isDead = false;
     isAttacking = false;
     animationFinished = true;
     deathAnimationPlayed = false;
 
-    // Hitbox
     HitboxOffsetX = 0;
     HitboxOffsetY = 0;
     HitboxWidth = 40;
@@ -90,28 +85,28 @@ class Character extends MoveableObject {
     /**
      * Updates the animation frame based on elapsed time.
      * Delegates the consumption of the accumulator to a helper.
-     * @param {number} dt Delta Time in ms.
+     * @param {number} deltaTime Delta Time in ms.
      * @returns {void}
      */
-    updateAnimation(dt) {
+    updateAnimation(deltaTime) {
         if (!this.animations) return;
         const frames = this.animations[this.state];
         if (!frames?.length) return;
-        const dur = this.getFrameDurationForState(this.state);
-        this.animAcc = (this.animAcc || 0) + dt;
-        this.consumeAnimationAccumulator(frames, dur);
+        const frameDuration = this.getFrameDurationForState(this.state);
+        this.animationAccumulator = (this.animationAccumulator || 0) + deltaTime;
+        this.consumeAnimationAccumulator(frames, frameDuration);
     }
 
     /**
      * Consumes the animation accumulator and advances frames if necessary.
      * Handles the special death animation that stops on the last frame.
      * @param {{img:HTMLImageElement}[]} frames
-     * @param {number} dur Frame duration in ms.
+     * @param {number} frameDuration Frame duration in ms.
      * @returns {void}
      */
-    consumeAnimationAccumulator(frames, dur) {
-        while (this.animAcc >= dur) {
-            this.animAcc -= dur;
+    consumeAnimationAccumulator(frames, frameDuration) {
+        while (this.animationAccumulator >= frameDuration) {
+            this.animationAccumulator -= frameDuration;
             if (this.state === 'death') { this.advanceDeath(frames); return; }
             this.frameIndex = (this.frameIndex + 1) % frames.length;
         }
@@ -183,11 +178,11 @@ class Character extends MoveableObject {
 
     /**
      * Resolves end of a specific attack state (switches to idle on last frame).
-     * @param {'attack'|'attack_extra'} state
+     * @param {'attack'|'attack_extra'} attackState
      * @returns {boolean} True if state was checked and handled.
      */
-    resolveAttackEndState(state) {
-        const frames = this.animations[state] || [];
+    resolveAttackEndState(attackState) {
+        const frames = this.animations[attackState] || [];
         if (!frames.length) return false;
         if (this.frameIndex === frames.length - 1) this.setState('idle');
         return true;
@@ -246,9 +241,9 @@ class Character extends MoveableObject {
      * @returns {number}
      */
     getFrameDurationForState(state) {
-        const map = this.frameDurations || {};
-        if (state && map[state] != null) return map[state];
-        if (map.default != null) return map.default;
+        const frameDurationMap = this.frameDurations || {};
+        if (state && frameDurationMap[state] != null) return frameDurationMap[state];
+        if (frameDurationMap.default != null) return frameDurationMap.default;
         return this.frameDuration ?? 200;
     }
 
@@ -259,8 +254,8 @@ class Character extends MoveableObject {
     getCurrentFrame() {
         const frames = this.animations?.[this.state];
         if (!frames?.length) return;
-        const idx = Math.max(0, Math.min(this.frameIndex || 0, frames.length - 1));
-        return frames[idx];
+        const index = Math.max(0, Math.min(this.frameIndex || 0, frames.length - 1));
+        return frames[index];
     }
 
     /**
@@ -269,10 +264,10 @@ class Character extends MoveableObject {
      * @param {{reset?:boolean}} [options] Optional parameter object.
      * @property {boolean} reset If true, the frame index and time accumulator are reset.
      */
-    setState(newState, opts = {}) {
-        const reset = !!opts.reset || this.state !== newState;
+    setState(newState, options = {}) {
+        const reset = !!options.reset || this.state !== newState;
         this.state = newState;
-        if (reset) { this.frameIndex = 0; this.animAcc = 0; }
+        if (reset) { this.frameIndex = 0; this.animationAccumulator = 0; }
         if (newState !== 'attack' && newState !== 'attack_extra') this.isAttacking = false;
         if (newState === 'death') { this.isDead = true; this.deathAnimationPlayed = false; }
     }
@@ -289,14 +284,14 @@ class Character extends MoveableObject {
 
     /**
      * Basic vertical physics: gravity and ground collision.
-     * @param {number} dt Delta time in ms
+     * @param {number} deltaTime Delta time in ms
      * @returns {void}
      */
-    updatePhysics(dt = 16) {
-        const f = (typeof dt === 'number' && isFinite(dt)) ? dt / 16 : 1;
+    updatePhysics(deltaTime = 16) {
+        const frameScale = (typeof deltaTime === 'number' && isFinite(deltaTime)) ? deltaTime / 16 : 1;
         if (this.isAboveGround() || this.speedY < 0) {
-            this.y += this.speedY * f;
-            this.speedY += this.acceleration * f;
+            this.y += this.speedY * frameScale;
+            this.speedY += this.acceleration * frameScale;
         }
         const groundTop = (this.groundY ?? 520) - (this.height * this.scale);
         if (this.y >= groundTop) { this.y = groundTop; this.speedY = 0; }

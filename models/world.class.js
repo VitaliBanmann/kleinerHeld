@@ -35,6 +35,7 @@ class World {
     this.paused = true;
     this.cameraFocusRatio = 0.5;
     this._winSoundPlayed = false;
+    this._deathSoundPlayed = false;
 
     if (levelData && levelData.backgrounds) this.loadLevel(levelData);
     requestAnimationFrame(this.loop.bind(this));
@@ -77,6 +78,7 @@ class World {
   loadLevel(levelData) {
     try { 
       this._winSoundPlayed = false;
+      this._deathSoundPlayed = false;
       Level.load(this, levelData); 
     } catch (e) {}
   }
@@ -105,7 +107,8 @@ class World {
    */
   randomXRightOfStart(minX, maxX) {
     if (maxX <= minX) return minX;
-    return Math.round(minX + Math.random() * (maxX - minX));
+    const randomXPosition = Math.round(minX + Math.random() * (maxX - minX));
+    return randomXPosition;
   }
 
   /**
@@ -115,7 +118,8 @@ class World {
    */
   faceTowardsCharacter(obj) {
     if (!obj || !this.character) return;
-    obj.direction = obj.x > this.character.x;
+    const isFacingLeft = obj.x > this.character.x;
+    obj.direction = isFacingLeft;
   }
 
   /**

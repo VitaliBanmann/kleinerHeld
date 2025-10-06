@@ -79,23 +79,23 @@ class Level {
     }
 
     /** Initializes enemy list and spawns initial enemies. */
-    static initEnemies(world, spec) {
+    static initEnemies(world, levelSpec) {
         world.enemies = [];
-        world.targetEnemiesCount = spec.enemiesCount ?? 0;
-        world.enemyClassRef = spec.enemyClass;
-        const minEnemyX = Math.min(world.levelWidth - 200, world.character.x + world.spawnSafeZoneRight);
-        for (let i = 0; i < spec.enemiesCount; i++) Level.spawnEnemy(world, spec, minEnemyX);
+        const targetEnemyCount = levelSpec.enemiesCount ?? 0;
+        world.enemyClassRef = levelSpec.enemyClass;
+        const minEnemyXPosition = Math.min(world.levelWidth - 200, world.character.x + world.spawnSafeZoneRight);
+        for (let i = 0; i < targetEnemyCount; i++) Level.spawnEnemy(world, levelSpec, minEnemyXPosition);
     }
 
     /** Spawns a single enemy at a random X right of start. */
-    static spawnEnemy(world, spec, minEnemyX) {
-        const E = new spec.enemyClass(world.groundY);
-        E.world = world;
-        E.x = world.randomXRightOfStart(minEnemyX, world.levelWidth - 200);
-        E.y = world.groundY - (E.height * (Number(E.scale) || 1));
-        world.faceTowardsCharacter(E);
-        E.speed = E.speed ?? (0.5 + Math.random() * 1.5);
-        world.enemies.push(E);
+    static spawnEnemy(world, levelSpec, minEnemyXPosition) {
+        const enemyInstance = new levelSpec.enemyClass(world.groundY);
+        enemyInstance.world = world;
+        enemyInstance.x = world.randomXRightOfStart(minEnemyXPosition, world.levelWidth - 200);
+        enemyInstance.y = world.groundY - (enemyInstance.height * (Number(enemyInstance.scale) || 1));
+        world.faceTowardsCharacter(enemyInstance);
+        enemyInstance.speed = enemyInstance.speed ?? (0.5 + Math.random() * 1.5);
+        world.enemies.push(enemyInstance);
     }
 
     /** Initializes boss instance and places it. */
@@ -213,7 +213,7 @@ function cleanupEnemies(world) {
         const dead = e.isDead || e.health <= 0;
         if (dead && !e._countedDead) {
             world.enemiesDefeated = (world.enemiesDefeated || 0) + 1;
-            Coin.spawnForEnemy(world, e); e._countedDead = true;   // changed
+            Coin.spawnForEnemy(world, e); e._countedDead = true;
         }
         return !dead;
     });
@@ -225,7 +225,7 @@ function cleanupBoss(world) {
     if (b.isDead || b.health <= 0) {
         if (!b._countedDead) {
             world.enemiesDefeated = (world.enemiesDefeated || 0) + 1;
-            Coin.spawnForEnemy(world, b, { boss: true }); b._countedDead = true; // changed
+            Coin.spawnForEnemy(world, b, { boss: true }); b._countedDead = true;
         }
         if (b.deathAnimationPlayed || !b.deathAnimationPlayed) world.boss = null;
     }

@@ -10,24 +10,20 @@ class EnemyLizard extends MoveableObject {
     health = 18;
     maxHealth = 18;
 
-    // Hitbox
     HitboxOffsetX = 30;
     HitboxOffsetXRight = 10;
     HitboxOffsetY = 0;
     HitboxWidth = 50;
     HitboxHeight = null;
 
-    // Statusflags
     isHurt = false;
     isDead = false;
     isAttacking = false;
 
-    // Animationsflags
     animationFinished = true;
     deathAnimationPlayed = false;
     deathAnimationComplete = false;
 
-    // Angriff
     attackCooldown = 0;
     attackRange = 80;
     attackDamage = 7;
@@ -38,7 +34,8 @@ class EnemyLizard extends MoveableObject {
     frameDuration = 200;
 
     /**
-     * @param {number} [groundY=520] Boden-Y zum Platzieren.
+     * Creates an instance of EnemyLizard.
+     * @param {number} [groundY=520] The Y position of the ground for placement.
      */
     constructor(groundY = 520) {
         super();
@@ -50,7 +47,8 @@ class EnemyLizard extends MoveableObject {
     }
 
     /**
-     * Lädt Frames aus LIZARD_IMAGES.
+     * Loads animation frames from the global LIZARD_IMAGES structure.
+     * @returns {void}
      */
     loadAnimations() {
         for (let [state, frames] of Object.entries(LIZARD_IMAGES)) {
@@ -69,7 +67,7 @@ class EnemyLizard extends MoveableObject {
     }
 
     /**
-     * Liefert aktuelles Frame.
+     * Returns the current animation frame for rendering.
      * @returns {{img:HTMLImageElement,width:number,height:number,offsetX:number,offsetY:number}|null}
      */
     getCurrentFrame() {
@@ -79,22 +77,23 @@ class EnemyLizard extends MoveableObject {
     }
 
     /**
-     * Setzt Zustand (optional Reset).
-     * @param {string} next
-     * @param {{reset?:boolean}} [options]
+     * Sets the state of the enemy (optional reset).
+     * @param {string} nextState The next state to set.
+     * @param {{reset?:boolean}} [options] Optional parameters.
      */
-    setState(next, { reset = false } = {}) {
-        if (this.state !== next || reset) {
-            this.state = next in this.animations ? next : 'idle';
+    setState(nextState, { reset = false } = {}) {
+        if (this.state !== nextState || reset) {
+            this.state = nextState in this.animations ? nextState : 'idle';
             this.frameIndex = 0;
         }
     }
 
     /**
-     * Aktualisiert State anhand Flags.
-     * @param {number} dt
+     * Updates the enemy's state based on its current status.
+     * @param {number} deltaTime The time elapsed since the last update.
+     * @returns {void}
      */
-    update(dt) {
+    update(deltaTime) {
         if (this.isDead) this.setState('death');
         else if (this.isHurt) this.setState('hurt');
         else if (this.isAttacking) this.setState('attack');

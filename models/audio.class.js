@@ -19,7 +19,11 @@ class AudioManager {
     };
 
     /**
-     * Init: lädt alle Audio-Ressourcen und stellt Mute/Volume ein.
+     * Initializes the audio system:
+     * - Restores mute state from localStorage.
+     * - Preloads menu/theme tracks and SFX.
+     * - Applies the mute state to all audio elements.
+     * @returns {void}
      */
     static init() {
         const savedMuteSetting = localStorage.getItem('kleinerheld-muted');
@@ -34,6 +38,10 @@ class AudioManager {
         this.setMuteState(this.isMuted);
     }
 
+    /**
+     * Creates and configures the looping menu music track.
+     * @returns {void}
+     */
     static initializeMenuMusicTrack() {
         const menuAudioElement = new Audio('./assets/audio/Music/menu.m4a');
         menuAudioElement.loop = true;
@@ -41,6 +49,10 @@ class AudioManager {
         this.musicTracks.menu = menuAudioElement;
     }
 
+    /**
+     * Creates and configures the non-looping theme music tracks.
+     * @returns {void}
+     */
     static initializeThemeMusicTracks() {
         this.musicTracks.themes = [
             new Audio('./assets/audio/Music/theme1.m4a'),
@@ -53,6 +65,10 @@ class AudioManager {
         });
     }
 
+    /**
+     * Preloads all sound effects and sets their default volume.
+     * @returns {void}
+     */
     static initializeSoundEffects() {
         this.soundEffects.sword = new Audio('./assets/audio/sword.mp3');
         this.soundEffects.spear = new Audio('./assets/audio/spear.mp3');
@@ -69,7 +85,9 @@ class AudioManager {
     }
 
     /**
-     * Früher: startUserGestureUnlock
+     * Installs a one-time user-gesture hook to unlock audio playback.
+     * Starts menu music or the level theme after the first pointerdown.
+     * @returns {void}
      */
     static startUserGestureHook() {
         const unlockAudio = () => {
@@ -84,7 +102,8 @@ class AudioManager {
     }
 
     /**
-     * Früher: stopMusicPlayback
+     * Stops any currently playing music and resets the playlist.
+     * @returns {void}
      */
     static stopMusic() {
         if (this.currentAudioElement) {
@@ -94,6 +113,10 @@ class AudioManager {
         this.stopMusicPlaylist();
     }
 
+    /**
+     * Clears the active playlist and resets/rewinds theme tracks.
+     * @returns {void}
+     */
     static stopMusicPlaylist() {
         this.currentPlaylist = [];
         this.currentPlaylistIndex = 0;
@@ -106,7 +129,8 @@ class AudioManager {
     }
 
     /**
-     * Früher: playMenuMusic
+     * Plays the looping menu music (if audio is unlocked).
+     * @returns {void}
      */
     static playMenu() {
         if (!this.isAudioUnlocked) return;
@@ -119,7 +143,10 @@ class AudioManager {
     }
 
     /**
-     * Früher: playThemeMusicForLevel
+     * Selects and plays a theme playlist based on the level reference.
+     * Level 1 -> index 0, level 2 -> index 1, level 3 -> index 2.
+     * @param {any} levelReference Reference to the active level (e.g., window.level2)
+     * @returns {void}
      */
     static playThemeForLevel(levelReference) {
         if (!this.isAudioUnlocked) return;
@@ -130,16 +157,31 @@ class AudioManager {
         this.startThemeMusicPlaylist(themeIndex);
     }
 
+    /**
+     * Starts the theme music playlist at the given index and begins playback.
+     * @param {number} [startIndex=0] Initial track index
+     * @returns {void}
+     */
     static startThemeMusicPlaylist(startIndex = 0) {
         this.setPlaylistToThemes();
         if (!this.setPlaylistIndex(startIndex)) return;
         this.playPlaylistAtIndex(this.currentPlaylistIndex);
     }
 
+    /**
+     * Sets the active playlist to the preloaded theme tracks.
+     * @returns {void}
+     */
     static setPlaylistToThemes() {
         this.currentPlaylist = this.musicTracks.themes;
     }
 
+    /**
+     * Sets the current playlist index with proper wrap-around.
+     * Returns false if there is no active playlist.
+     * @param {number} playlistIndex Desired playlist index
+     * @returns {boolean} True if an index could be set, false otherwise
+     */
     static setPlaylistIndex(playlistIndex) {
         if (!this.currentPlaylist.length) {
             this.currentPlaylistIndex = 0;
@@ -150,6 +192,11 @@ class AudioManager {
         return true;
     }
 
+    /**
+     * Plays the track at the given playlist index and sets up auto-advance.
+     * @param {number} playlistIndex Index into the current playlist
+     * @returns {void}
+     */
     static playPlaylistAtIndex(playlistIndex) {
         const audioElement = this.currentPlaylist[playlistIndex];
         if (!audioElement) return;
@@ -159,11 +206,21 @@ class AudioManager {
         audioElement.play().catch(() => {});
     }
 
+    /**
+     * Advances to the next track in the playlist (with wrap-around) and plays it.
+     * @returns {void}
+     */
     static playNextInPlaylist() {
         this.currentPlaylistIndex = (this.currentPlaylistIndex + 1) % this.currentPlaylist.length;
         this.playPlaylistAtIndex(this.currentPlaylistIndex);
     }
 
+    /**
+     * Applies the mute state to the manager and all known audio elements.
+     * Persists the state in localStorage.
+     * @param {boolean} muteState Whether audio should be muted
+     * @returns {void}
+     */
     static setMuteState(muteState) {
         this.isMuted = muteState;
         localStorage.setItem('kleinerheld-muted', JSON.stringify(muteState));
@@ -176,7 +233,8 @@ class AudioManager {
     }
 
     /**
-     * Früher: toggleMuteState
+     * Toggles mute and returns the resulting state.
+     * @returns {boolean} True if muted, false otherwise
      */
     static toggleMute() {
         this.setMuteState(!this.isMuted);
@@ -184,19 +242,21 @@ class AudioManager {
     }
 
     /**
-     * Früher: playSoundEffect
-     * Beinhaltet Legacy-Key-Mapping.
+     * Plays a sound effect by name.
+     * Supports legacy keys via small mapping (e.g., 'bosstroll' -> 'bossTroll').
+     * @param {string} effectName Effect name or legacy alias
+     * @returns {void}
      */
-    static playSfx(name) {
+    static playSfx(effectName) {
         if (this.isMuted) return;
-        const map = {
+        const legacyKeyMap = {
             bosstroll: 'bossTroll',
             bossdragon: 'bossDragon',
             bossdemon: 'bossDemon',
             gameover: 'gameOver'
         };
-        const resolved = map[name] || name;
-        const soundEffectAudioElement = this.soundEffects[resolved];
+        const resolvedEffectName = legacyKeyMap[effectName] || effectName;
+        const soundEffectAudioElement = this.soundEffects[resolvedEffectName];
         if (!soundEffectAudioElement) return;
         const soundEffectInstance = soundEffectAudioElement.cloneNode(true);
         soundEffectInstance.volume = this.volumeLevels.soundEffects;
@@ -204,9 +264,12 @@ class AudioManager {
         soundEffectInstance.play().catch(() => {});
     }
 
-    // Property wie gehabt für UI
+    /**
+     * UI-friendly alias property for the mute state.
+     * Setting this property delegates to setMuteState.
+     */
     static get muted() { return this.isMuted; }
-    static set muted(v) { this.setMuteState(!!v); }
+    static set muted(value) { this.setMuteState(!!value); }
 }
 
 window.AudioManager = AudioManager;

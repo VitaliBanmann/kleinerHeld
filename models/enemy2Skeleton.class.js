@@ -12,24 +12,20 @@ class EnemySkeleton extends MoveableObject {
     health = 20;
     maxHealth = 20;
 
-    // Hitbox
     HitboxOffsetX = 58;
     HitboxOffsetXRight = 35;
     HitboxOffsetY = -10;
     HitboxWidth = 35;
     HitboxHeight = 60;
 
-    // Statusflags
     isHurt = false;
     isDead = false;
     isAttacking = false;
 
-    // Animationsflags
     animationFinished = true;
     deathAnimationPlayed = false;
     deathAnimationComplete = false;
 
-    // Angriff
     attackCooldown = 0;
     attackRange = 80;
     attackDamage = 10;
@@ -40,7 +36,8 @@ class EnemySkeleton extends MoveableObject {
     frameDuration = 200;
 
     /**
-     * @param {number} [groundY=520]
+     * Creates an instance of EnemySkeleton.
+     * @param {number} [groundY=520] The Y position of the ground for placement.
      */
     constructor(groundY = 520) {
         super();
@@ -51,8 +48,7 @@ class EnemySkeleton extends MoveableObject {
     }
 
     /**
-     * Builds animation frames from SKELETON_IMAGES definition.
-     * Keeps this method short by delegating per-sheet work.
+     * Loads animation frames from the global SKELETON_IMAGES structure.
      * @returns {void}
      */
     loadAnimations() {
@@ -65,21 +61,23 @@ class EnemySkeleton extends MoveableObject {
 
     /**
      * Slices a sprite sheet into frame descriptors.
-     * @param {{src:string,width:number,height:number,frames:number}} sheet
-     * @returns {Array<Object>}
+     * @param {{src:string,width:number,height:number,frames:number}} sheet The sprite sheet definition.
+     * @returns {Array<Object>} An array of frame descriptors.
      */
     buildFramesFromSheet(sheet) {
         const img = new Image(); img.src = sheet.src;
-        img.onerror = () => console.warn('Bild nicht gefunden:', img.src);
-        const fw = Math.floor(sheet.width / sheet.frames), fh = sheet.height;
+        img.onerror = () => console.warn('Image not found:', img.src);
+        const frameWidth = Math.floor(sheet.width / sheet.frames);
+        const frameHeight = sheet.height;
         const frames = [];
         for (let i = 0; i < sheet.frames; i++) {
-            frames.push({ img, sx: i * fw, sy: 0, sw: fw, sh: fh, width: fw, height: fh });
+            frames.push({ img, sx: i * frameWidth, sy: 0, sw: frameWidth, sh: frameHeight, width: frameWidth, height: frameHeight });
         }
         return frames;
     }
 
     /**
+     * Returns the current animation frame for rendering.
      * @returns {{img:HTMLImageElement,sx:number,sy:number,sw:number,sh:number,width:number,height:number}|null}
      */
     getCurrentFrame() {
@@ -89,22 +87,23 @@ class EnemySkeleton extends MoveableObject {
     }
 
     /**
-     * Zustand setzen.
-     * @param {string} next
-     * @param {{reset?:boolean}} [options]
+     * Sets the state of the enemy (optional reset).
+     * @param {string} nextState The next state to set.
+     * @param {{reset?:boolean}} [options] Optional parameters.
      */
-    setState(next, { reset = false } = {}) {
-        if (this.state !== next || reset) {
-            this.state = next in this.animations ? next : 'idle';
+    setState(nextState, { reset = false } = {}) {
+        if (this.state !== nextState || reset) {
+            this.state = nextState in this.animations ? nextState : 'idle';
             this.frameIndex = 0;
         }
     }
 
     /**
-     * State-Logik.
-     * @param {number} dt
+     * Updates the enemy's state based on its current status.
+     * @param {number} deltaTime The time elapsed since the last update.
+     * @returns {void}
      */
-    update(dt) {
+    update(deltaTime) {
         if (this.isDead) this.setState('death');
         else if (this.isHurt) this.setState('hurt');
         else if (this.isAttacking) this.setState('attack');

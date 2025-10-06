@@ -47,7 +47,9 @@ class MoveableObject {
      * Sets direction to false (facing right).
      */
     moveRight() {
-        this.x += this.speed;
+        const currentXPosition = this.x;
+        const movementSpeed = this.speed;
+        this.x = currentXPosition + movementSpeed;
         this.direction = false;
     }
 
@@ -56,7 +58,9 @@ class MoveableObject {
      * Sets direction to true (facing left).
      */
     moveLeft() {
-        this.x -= this.speed;
+        const currentXPosition = this.x; // Descriptive variable
+        const movementSpeed = this.speed; // Descriptive variable
+        this.x = currentXPosition - movementSpeed;
         this.direction = true;
     }
 

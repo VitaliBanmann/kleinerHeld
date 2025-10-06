@@ -113,7 +113,7 @@ body.pseudo-fs .game-canvas {
   position: fixed;
   left: 50%; transform: translateX(-50%);
   bottom: 8px; z-index: 3;
-  font: 600 13px/1 Arial, sans-serif;
+  font: 600 16px/1 Arial, sans-serif;
   display: none;
 }
 .site-footer a {
@@ -133,7 +133,7 @@ body.show-impressum .site-footer {
     place-items: center;
     padding: 24px 16px 64px;
     box-sizing: border-box;
-    text-align: center;
+    text-align: center;    
 }
 
 .imp-box {

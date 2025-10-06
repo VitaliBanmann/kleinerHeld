@@ -170,6 +170,50 @@
     }
 }
 
+@media (pointer: coarse) and (min-width: 701px) and (max-width: 1400px) {
+    .impressum {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 24px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+    
+    .imp-box {
+        max-width: 100vw;
+        max-height: 100vh;
+        padding: 32px;
+        font-size: 16px;
+        line-height: 1.5;
+        overflow-y: auto;
+        margin: 0;
+    }
+
+    .imp-box h1 {
+        font-size: 2.2em;
+        margin: 0.4em 0;
+    }
+
+    .imp-box h2 {
+        font-size: 1.5em;
+        margin: 0.8em 0 0.4em;
+    }
+
+    .imp-box p {
+        margin: 0.6em 0;
+    }
+
+    .btn-back {
+        padding: 16px 32px;
+        font-size: 18px;
+        margin: 20px 0 16px;
+    }
+}
+
 @media (pointer: coarse), (max-width: 700px) {
     .impressum {
         position: fixed;
@@ -194,8 +238,8 @@
         flex-direction: column;
         overflow-y: auto;
         overflow-x: hidden;
-        font-size: 13px;
-        line-height: 1.4;
+        font-size: 14px; /* increased from 13px */
+        line-height: 1.5; /* increased from 1.4 */
         box-sizing: border-box;
     }
 

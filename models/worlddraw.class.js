@@ -14,10 +14,13 @@ World.prototype.draw = function() {
     drawBirds(this);
     drawActors(this);
 
-    const charDmg = Combat.damageForLevel?.(this.character?.weaponLevel || 0) || 10;
-    for (const e of this.enemies) drawEnemyHealthBar(this.ctx, e, charDmg);
-    if (this.boss) drawEnemyHealthBar(this.ctx, this.boss, charDmg);
-
+    const characterDamage = Combat.damageForLevel?.(this.character?.weaponLevel || 0) || 10;
+    for (const enemy of this.enemies) {
+      drawEnemyHealthBar(this.ctx, enemy, characterDamage);
+    }
+    if (this.boss) {
+      drawEnemyHealthBar(this.ctx, this.boss, characterDamage);
+    }
   } catch (e) {} finally { this.ctx.restore(); }
   try { HUD.draw(this.ctx, this.canvas, this); } catch (e) {}
   try { debugDraw(this.ctx, this.canvas, this); } catch (e) {}

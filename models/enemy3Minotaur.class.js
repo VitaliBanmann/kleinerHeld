@@ -12,24 +12,20 @@ class EnemyMinotaur extends MoveableObject {
     health = 25;
     maxHealth = 25;
 
-    // Hitbox
     HitboxOffsetX = 40;
     HitboxOffsetXRight = 35;
     HitboxOffsetY = -50;
     HitboxWidth = 50;
     HitboxHeight = 100;
 
-    // Statusflags
     isHurt = false;
     isDead = false;
     isAttacking = false;
 
-    // Animationsflags
     animationFinished = true;
     deathAnimationPlayed = false;
     deathAnimationComplete = false;
 
-    // Attack
     attackCooldown = 0;
     attackRange = 85;
     attackDamage = 12;

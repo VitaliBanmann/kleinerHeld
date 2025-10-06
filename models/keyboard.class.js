@@ -11,39 +11,39 @@ class Keyboard {
      * Must be called after the DOM is ready.
      */
     mapEvents() {
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Enter') this.ENTER = true;
-            if (['Enter', 'Space'].includes(e.code) && window.Overlay?.isBlocking?.()) {
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Enter') this.ENTER = true;
+            if (['Enter', 'Space'].includes(event.code) && window.Overlay?.isBlocking?.()) {
                 window.Overlay.handleActionPrimary();
             }
-            if (e.code === 'KeyA') this.LEFT = true;
-            if (e.code === 'KeyD') this.RIGHT = true;
-            if (e.code === 'Space') this.SPACE = true;
+            if (event.code === 'KeyA') this.LEFT = true;
+            if (event.code === 'KeyD') this.RIGHT = true;
+            if (event.code === 'Space') this.SPACE = true;
 
-            if (e.code === 'KeyW') this.W = true;
-            if (e.code === 'Digit1') this.D1 = true;
-            if (e.code === 'Digit2') this.D2 = true;
-            if (e.code === 'Digit3') this.D3 = true;
+            if (event.code === 'KeyW') this.W = true;
+            if (event.code === 'Digit1') this.D1 = true;
+            if (event.code === 'Digit2') this.D2 = true;
+            if (event.code === 'Digit3') this.D3 = true;
 
-            if (e.code === 'KeyE') this.E = true;
-            if (e.code === 'KeyQ') this.Q = true;
-            if (e.code === 'KeyP') this.P = true;
+            if (event.code === 'KeyE') this.E = true;
+            if (event.code === 'KeyQ') this.Q = true;
+            if (event.code === 'KeyP') this.P = true;
         });
 
-        document.addEventListener('keyup', (e) => {
-            if (e.code === 'Enter') this.ENTER = false;
-            if (e.code === 'KeyA') this.LEFT = false;
-            if (e.code === 'KeyD') this.RIGHT = false;
-            if (e.code === 'Space') this.SPACE = false;
+        document.addEventListener('keyup', (event) => {
+            if (event.code === 'Enter') this.ENTER = false;
+            if (event.code === 'KeyA') this.LEFT = false;
+            if (event.code === 'KeyD') this.RIGHT = false;
+            if (event.code === 'Space') this.SPACE = false;
 
-            if (e.code === 'KeyW') this.W = false;
-            if (e.code === 'Digit1') this.D1 = false;
-            if (e.code === 'Digit2') this.D2 = false;
-            if (e.code === 'Digit3') this.D3 = false;
+            if (event.code === 'KeyW') this.W = false;
+            if (event.code === 'Digit1') this.D1 = false;
+            if (event.code === 'Digit2') this.D2 = false;
+            if (event.code === 'Digit3') this.D3 = false;
 
-            if (e.code === 'KeyE') this.E = false;
-            if (e.code === 'KeyQ') this.Q = false;
-            if (e.code === 'KeyP') this.P = false;
+            if (event.code === 'KeyE') this.E = false;
+            if (event.code === 'KeyQ') this.Q = false;
+            if (event.code === 'KeyP') this.P = false;
         });
 
         this.bindHoldButton('left', 'LEFT');
@@ -60,53 +60,53 @@ class Keyboard {
 
     /**
      * Sets a flag temporarily to true (pulse) and then automatically to false.
-     * @param {keyof Keyboard} prop - Property name (flag)
+     * @param {keyof Keyboard} property - Property name (flag)
      * @param {number} [duration=60] - Duration in ms
      */
-    pulse(prop, duration = 60) {
-        this[prop] = true;
-        setTimeout(() => { this[prop] = false; }, duration);
+    pulse(property, duration = 60) {
+        this[property] = true;
+        setTimeout(() => { this[property] = false; }, duration);
     }
 
     /**
      * Binds a "Hold" button (holding down = permanently true).
      * Supports touch/pointer/mouse.
-     * @param {string} id - Element ID
-     * @param {keyof Keyboard} prop - Flag name
+     * @param {string} elementId - Element ID
+     * @param {keyof Keyboard} property - Flag name
      */
-    bindHoldButton(id, prop) {
-        const el = document.getElementById(id);
-        if (!el) return;
+    bindHoldButton(elementId, property) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
 
-        const down = (e) => { e.preventDefault(); this[prop] = true; };
-        const up = (e) => { e.preventDefault(); this[prop] = false; };
+        const onTouchStart = (event) => { event.preventDefault(); this[property] = true; };
+        const onTouchEnd = (event) => { event.preventDefault(); this[property] = false; };
 
-        el.addEventListener('touchstart', down, { passive: false });
-        el.addEventListener('touchend', up, { passive: false });
-        el.addEventListener('touchcancel', up, { passive: false });
+        element.addEventListener('touchstart', onTouchStart, { passive: false });
+        element.addEventListener('touchend', onTouchEnd, { passive: false });
+        element.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
-        el.addEventListener('pointerdown', down);
-        el.addEventListener('pointerup', up);
-        el.addEventListener('pointerleave', up);
+        element.addEventListener('pointerdown', onTouchStart);
+        element.addEventListener('pointerup', onTouchEnd);
+        element.addEventListener('pointerleave', onTouchEnd);
 
-        el.addEventListener('mousedown', down);
-        el.addEventListener('mouseup', up);
-        el.addEventListener('mouseleave', up);
+        element.addEventListener('mousedown', onTouchStart);
+        element.addEventListener('mouseup', onTouchEnd);
+        element.addEventListener('mouseleave', onTouchEnd);
     }
 
     /**
      * Binds a "Tap" button (short pulse via handler).
-     * @param {string} id - Element ID
+     * @param {string} elementId - Element ID
      * @param {Function} handler - Action to execute
      */
-    bindTapButton(id, handler) {
-        const el = document.getElementById(id);
-        if (!el) return;
+    bindTapButton(elementId, handler) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
 
-        const exec = (e) => { e.preventDefault(); handler(); };
-        el.addEventListener('touchend', exec, { passive: false });
-        el.addEventListener('pointerup', exec);
-        el.addEventListener('click', exec);
+        const execute = (event) => { event.preventDefault(); handler(); };
+        element.addEventListener('touchend', execute, { passive: false });
+        element.addEventListener('pointerup', execute);
+        element.addEventListener('click', execute);
     }
 }
 

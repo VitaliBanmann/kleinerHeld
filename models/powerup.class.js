@@ -36,19 +36,19 @@ class Powerups {
     /**
      * Main update: processes timers, edge inputs, and performs purchases/activations.
      * @param {Object} world World (contains character)
-     * @param {number} dt Delta ms
+     * @param {number} deltaTime Delta ms
      * @param {Object} keyboard Input object with flags (W,D1,D2,D3)
      */
-    static update(world, dt, keyboard) {
-        const c = world.character;
-        if (!c) return;
-        Powerups.ensureCharacterProps(c);
+    static update(world, deltaTime, keyboard) {
+        const character = world.character; // Descriptive variable
+        if (!character) return;
+        Powerups.ensureCharacterProps(character);
 
-        this.updateInvulnTimers(c, dt);
-        this.handleHeart(c, keyboard);
-        this.handleWeaponUpgrade(c, keyboard);
-        this.handleLuckyPurchase(c, keyboard);
-        this.handleInvuln(c, keyboard);
+        this.updateInvulnTimers(character, deltaTime);
+        this.handleHeart(character, keyboard);
+        this.handleWeaponUpgrade(character, keyboard);
+        this.handleLuckyPurchase(character, keyboard);
+        this.handleInvuln(character, keyboard);
     }
 
     /**

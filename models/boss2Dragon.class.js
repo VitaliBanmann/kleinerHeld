@@ -15,7 +15,6 @@ class BossDragon extends MoveableObject {
     hitboxWidth = 125;
     hitboxHeight = 75;
 
-    // Status flags
     isHurt = false;
     isDead = false;
     animationFinished = true;

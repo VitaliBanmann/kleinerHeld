@@ -10,14 +10,12 @@ class BossDemon extends MoveableObject {
     maxHealth = 60;
     bossSoundRange = 1100;
 
-    // Hitbox properties
     hitboxOffsetLeft = 20;
     hitboxOffsetRight = 0;
     hitboxOffsetTop = 70;
     hitboxWidth = 60;
     hitboxHeight = 80;
 
-    // Status flags
     isHurt = false;
     isDead = false;
     animationFinished = true;

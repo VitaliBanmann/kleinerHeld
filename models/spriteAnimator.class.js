@@ -16,11 +16,11 @@ class SpriteAnimator {
 
     /**
      * Updates the animation progress based on elapsed time.
-     * @param {number} dt - Delta time in milliseconds.
+     * @param {number} deltaTime - Delta time in milliseconds.
      */
-    update(dt) {
-        if (!dt) return;
-        this.accumulatedMs += dt;
+    update(deltaTime) {
+        if (!deltaTime) return;
+        this.accumulatedMs += deltaTime;
         while (this.accumulatedMs >= this.frameDuration) {
             this.accumulatedMs -= this.frameDuration;
             this.index = (this.index + 1) % this.frameCount;

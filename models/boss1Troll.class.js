@@ -12,14 +12,12 @@ class BossTroll extends MoveableObject {
     maxHealth = 30;
     bossSoundRange = 800;
 
-    // Hitbox properties
     hitboxOffsetLeft = 180;
     hitboxOffsetRight = 60;
     hitboxOffsetTop = -375;
     hitboxWidth = 400;
     hitboxHeight = 520;
 
-    // Status flags
     isHurt = false;
     isDead = false;
     animationFinished = true;
