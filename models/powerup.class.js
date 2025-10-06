@@ -44,6 +44,19 @@ class Powerups {
         if (!c) return;
         Powerups.ensureCharacterProps(c);
 
+        this.updateInvulnTimers(c, dt);
+        this.handleHeart(c, keyboard);
+        this.handleWeaponUpgrade(c, keyboard);
+        this.handleLuckyPurchase(c, keyboard);
+        this.handleInvuln(c, keyboard);
+    }
+
+    /**
+     * Updates invulnerability timers and cooldowns.
+     * @param {any} c Character
+     * @param {number} dt Delta ms
+     */
+    static updateInvulnTimers(c, dt) {
         if (c.invulnActive) {
             c.invulnTimer = Math.max(0, c.invulnTimer - dt);
             if (c.invulnTimer <= 0) {
@@ -53,57 +66,77 @@ class Powerups {
         } else {
             c.invulnCooldown = Math.max(0, c.invulnCooldown - dt);
         }
+    }
 
-        /**
-         * Edge-detection for keys (only on rising edge true).
-         * @param {'W'|'D1'|'D2'|'D3'} code
-         * @param {boolean} now Current key state
-         * @returns {boolean} true if just pressed
-         */
-        const edge = (code, now) => {
-            const was = Powerups.pressed[code] || false;
-            Powerups.pressed[code] = !!now;
-            return now && !was;
-        };
+    /**
+     * Returns true once when a key transitions to pressed.
+     * @param {'W'|'D1'|'D2'|'D3'} code
+     * @param {boolean} now Current key state
+     * @returns {boolean}
+     */
+    static isJustPressed(code, now) {
+        const was = Powerups.pressed[code] || false;
+        Powerups.pressed[code] = !!now;
+        return !!now && !was;
+    }
 
-        // W: Buy heart or heal
-        if (edge('W', keyboard?.W)) {
-            const missing = Math.max(0, (c.maxHealth || 0) - (c.health || 0));
-            if ((c.hearts || 0) > 0 && missing >= 30) {
-                const heal = 30;
-                c.health = Math.min(c.maxHealth, c.health + heal);
-                c.hearts -= 1;
-            } else if ((c.coins || 0) >= Powerups.prices.heart) {
-                c.coins -= Powerups.prices.heart;
-                c.hearts += 1;
-            }
+    /**
+     * Buys a heart or heals when W is pressed.
+     * @param {any} c Character
+     * @param {any} keyboard Keyboard state
+     */
+    static handleHeart(c, keyboard) {
+        if (!this.isJustPressed('W', keyboard?.W)) return;
+        const missing = Math.max(0, (c.maxHealth || 0) - (c.health || 0));
+        if ((c.hearts || 0) > 0 && missing >= 30) {
+            const heal = 30;
+            c.health = Math.min(c.maxHealth, c.health + heal);
+            c.hearts -= 1;
+        } else if ((c.coins || 0) >= Powerups.prices.heart) {
+            c.coins -= Powerups.prices.heart;
+            c.hearts += 1;
         }
+    }
 
-        // 1: Upgrade weapon
-        if (edge('D1', keyboard?.D1)) {
-            if (c.weaponLevel < 3 && (c.coins || 0) >= Powerups.prices.weapon) {
-                c.coins -= Powerups.prices.weapon;
-                c.weaponLevel += 1;
-            }
+    /**
+     * Upgrades weapon on key 1.
+     * @param {any} c Character
+     * @param {any} keyboard Keyboard state
+     */
+    static handleWeaponUpgrade(c, keyboard) {
+        if (!this.isJustPressed('D1', keyboard?.D1)) return;
+        if (c.weaponLevel < 3 && (c.coins || 0) >= Powerups.prices.weapon) {
+            c.coins -= Powerups.prices.weapon;
+            c.weaponLevel += 1;
         }
+    }
 
-        // 2: Buy lucky
-        if (edge('D2', keyboard?.D2)) {
-            if (!c.luckyPowerup && (c.coins || 0) >= Powerups.prices.lucky) {
-                c.coins -= Powerups.prices.lucky;
-                c.luckyPowerup = true;
-            }
+    /**
+     * Purchases lucky power-up on key 2.
+     * @param {any} c Character
+     * @param {any} keyboard Keyboard state
+     */
+    static handleLuckyPurchase(c, keyboard) {
+        if (!this.isJustPressed('D2', keyboard?.D2)) return;
+        if (!c.luckyPowerup && (c.coins || 0) >= Powerups.prices.lucky) {
+            c.coins -= Powerups.prices.lucky;
+            c.luckyPowerup = true;
         }
+    }
 
-        // 3: Buy or activate invulnerability
-        if (edge('D3', keyboard?.D3)) {
-            if (!c.invulnPowerup && (c.coins || 0) >= Powerups.prices.invuln) {
-                c.coins -= Powerups.prices.invuln;
-                c.invulnPowerup = true;
-            } else if (c.invulnPowerup && !c.invulnActive && c.invulnCooldown <= 0) {
-                c.invulnActive = true;
-                c.invulnTimer = Powerups.invuln.duration;
-            }
+    /**
+     * Buys or activates invulnerability on key 3.
+     * @param {any} c Character
+     * @param {any} keyboard Keyboard state
+     */
+    static handleInvuln(c, keyboard) {
+        if (!this.isJustPressed('D3', keyboard?.D3)) return;
+        if (!c.invulnPowerup && (c.coins || 0) >= Powerups.prices.invuln) {
+            c.coins -= Powerups.prices.invuln;
+            c.invulnPowerup = true;
+        } else if (c.invulnPowerup && !c.invulnActive && c.invulnCooldown <= 0) {
+            c.invulnActive = true;
+            c.invulnTimer = Powerups.invuln.duration;
         }
     }
 }
