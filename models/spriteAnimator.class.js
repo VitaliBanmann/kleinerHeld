@@ -1,5 +1,8 @@
 class SpriteAnimator {
- 
+    /**
+     * Creates an instance of SpriteAnimator.
+     * @param {{ image: HTMLImageElement, frameWidth: number, frameHeight: number, frameCount: number, frameDuration?: number }} params - Parameters for the animator.
+     */
     constructor({ image, frameWidth, frameHeight, frameCount, frameDuration = 100 }) {
         this.image = image;
         this.frameWidth = frameWidth;
@@ -12,8 +15,8 @@ class SpriteAnimator {
     }
 
     /**
-     * Fortschritt der Animation basierend auf vergangener Zeit.
-     * @param {number} dt Delta Time in ms
+     * Updates the animation progress based on elapsed time.
+     * @param {number} dt - Delta time in milliseconds.
      */
     update(dt) {
         if (!dt) return;
@@ -25,8 +28,8 @@ class SpriteAnimator {
     }
 
     /**
-     * Liefert Quell-Rechteck des aktuellen Frames für drawImage.
-     * @returns {{sx:number,sy:number,sw:number,sh:number}}
+     * Gets the source rectangle for the current frame for drawImage.
+     * @returns {{ sx: number, sy: number, sw: number, sh: number }}
      */
     getSourceRect() {
         const sw = this.frameWidth;
@@ -36,4 +39,5 @@ class SpriteAnimator {
         return { sx, sy, sw, sh };
     }
 }
+
 window.SpriteAnimator = SpriteAnimator;

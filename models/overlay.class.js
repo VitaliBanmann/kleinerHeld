@@ -3,10 +3,7 @@ class Overlay {
     static nextLevel = '?';
     static onProceed = null;
     static stats = { totalCoins: 0, enemiesDefeated: 0 };
-
-    /** Font family used for text rendering. */
     static fontFamily = "StoryScript, Arial, sans-serif";
-    /** Default letter spacing in em (multiplied by font size). */
     static lsEm = 0.04;
 
     /**
@@ -339,12 +336,8 @@ class Overlay {
      * @returns {boolean} True if a button was clicked
      */
     static handleClick(x, y) {
-        // Wichtig: Prüfen ob Overlay überhaupt aktiv ist
         if (!Overlay.isBlocking()) return false;
-        
-        // Prüfen ob _buttons existiert und gefüllt ist
         if (!Overlay._buttons || Overlay._buttons.length === 0) return false;
-        
         for (const b of Overlay._buttons) {
             if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
                 Overlay.buttonAction(b.id);
@@ -709,7 +702,6 @@ class Overlay {
      * @returns {void}
      */
     static handleProceed() {
-        AudioManager.playSfx?.('win');
         if (window.world && window.world.currentLevel === window.level3) { 
             Overlay.state = 'final'; Overlay.syncDomVisibility(); return; 
         }

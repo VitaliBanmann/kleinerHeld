@@ -23,7 +23,7 @@ class Character extends MoveableObject {
     invulnCooldown = 0;
     invulnTimer = 0;
 
-    // Angriff
+    // Attack
     attackRange = 50;
 
     // Animation
@@ -42,7 +42,7 @@ class Character extends MoveableObject {
     animAcc = 0;
     animTimer = null;
 
-    // Statusflags
+    // Status flags
     isHurt = false;
     isDead = false;
     isAttacking = false;
@@ -56,19 +56,20 @@ class Character extends MoveableObject {
     HitboxHeight = 50;
 
     /**
-     * @param {number} [groundY=520] Boden-Y zum Platzieren (untere Kante des Sprites).
+     * Creates an instance of Character.
+     * @param {number} [groundY=520] The Y position of the ground for placement (bottom edge of the sprite).
      */
     constructor(groundY = 520) {
         super();
-        /** @type {number} Referenzboden */
+        /** @type {number} Reference ground */
         this.groundY = groundY;
         this.y = groundY - (this.height * this.scale);
         this.loadAnimation();
     }
 
     /**
-     * Lädt alle Animationsframes aus globaler CHARACTER_IMAGES Struktur.
-     * Erwartetes Format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
+     * Loads all animation frames from the global CHARACTER_IMAGES structure.
+     * Expected format: { state: [{src,width,height,offsetX,offsetY}, ...], ... }
      */
     loadAnimation() {
         for (let [state, frames] of Object.entries(CHARACTER_IMAGES)) {
@@ -87,8 +88,8 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Aktualisiert Animationsframe basierend auf vergangener Zeit.
-     * Delegiert den Verbrauch des Akkumulators an einen Helfer.
+     * Updates the animation frame based on elapsed time.
+     * Delegates the consumption of the accumulator to a helper.
      * @param {number} dt Delta Time in ms.
      * @returns {void}
      */
@@ -102,10 +103,10 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Verbraucht den Animationsakkumulator und schaltet bei Bedarf Frames weiter.
-     * Behandelt die spezielle Tod-Animation, die im letzten Frame stoppt.
+     * Consumes the animation accumulator and advances frames if necessary.
+     * Handles the special death animation that stops on the last frame.
      * @param {{img:HTMLImageElement}[]} frames
-     * @param {number} dur Frame-Dauer in ms.
+     * @param {number} dur Frame duration in ms.
      * @returns {void}
      */
     consumeAnimationAccumulator(frames, dur) {
@@ -117,7 +118,7 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Schaltet die Tod-Animation weiter; kennzeichnet, wenn das letzte Frame erreicht ist.
+     * Advances the death animation; marks when the last frame is reached.
      * @param {{img:HTMLImageElement}[]} frames
      * @returns {void}
      */
@@ -129,8 +130,8 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Haupt-Logik für Zustandswechsel basierend auf Eingaben & Statusflags.
-     * Reihenfolge: death > hurt > attack(_extra) > jump > run > idle
+     * Main logic for state transitions based on input & status flags.
+     * Order: death > hurt > attack(_extra) > jump > run > idle
      */
     update() {
         if (this.handleImmediateStates()) return;
@@ -142,8 +143,8 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Behandelt unmittelbare Zustände (Tod/Verletzung).
-     * @returns {boolean} True, wenn behandelt und ein früherer Ausstieg erfolgt ist.
+     * Handles immediate states (death/hurt).
+     * @returns {boolean} True if handled and an early exit occurred.
      */
     handleImmediateStates() {
         if (this.isDead) { this.setState('death'); return true; }
@@ -152,8 +153,8 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Liest Angriffs-Eingaben und löst Angriffs-Zustände einmal aus.
-     * @returns {boolean} True, wenn ein Angriff gestartet wurde.
+     * Reads attack inputs and triggers attack states once.
+     * @returns {boolean} True if an attack was initiated.
      */
     handleAttackInput() {
         if (keyboard.E && this.state !== 'attack') {
@@ -193,8 +194,8 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Verlässt den Sprungzustand, wenn er beendet ist und der Boden erreicht ist.
-     * @returns {boolean} True, wenn der Sprungzustand aufgelöst wurde.
+     * Exits the jump state if it is finished and the ground is reached.
+     * @returns {boolean} True if the jump state was resolved.
      */
     resolveJumpEnd() {
         if (this.state !== 'jump') return false;
@@ -206,8 +207,8 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Startet einen Sprung, wenn er auf dem Boden ist und noch nicht springt.
-     * @returns {boolean} True, wenn ein Sprung initiiert wurde.
+     * Initiates a jump if on the ground and not already jumping.
+     * @returns {boolean} True if a jump was initiated.
      */
     handleJumpInput() {
         if (!keyboard.SPACE) return false;
@@ -216,7 +217,7 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Wählt zwischen Rennen und Idle basierend auf der horizontalen Eingabe.
+     * Chooses between running and idle based on horizontal input.
      * @returns {void}
      */
     updateMovementState() {
@@ -228,7 +229,7 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Startet Sprung falls auf Boden & nicht bereits im jump-State.
+     * Initiates a jump if on the ground & not already in jump state.
      */
     jump() {
         if (!this.isAboveGround() && this.state !== 'jump') {
@@ -263,10 +264,10 @@ class Character extends MoveableObject {
     }
 
     /**
-     * Setzt den Zustand (Animation) und optional den Frame-Index und Zeitakkumulator zurück.
-     * @param {string} newState Neuer Zustand.
-     * @param {{reset?:boolean}} [options] Optionaler Paramter-Objekt.
-     * @property {boolean} reset Wenn true, wird der Frame-Index und Zeitakkumulator zurückgesetzt.
+     * Sets the state (animation) and optionally resets the frame index and time accumulator.
+     * @param {string} newState New state.
+     * @param {{reset?:boolean}} [options] Optional parameter object.
+     * @property {boolean} reset If true, the frame index and time accumulator are reset.
      */
     setState(newState, opts = {}) {
         const reset = !!opts.reset || this.state !== newState;

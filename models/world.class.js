@@ -34,6 +34,7 @@ class World {
     this.character.world = this;
     this.paused = true;
     this.cameraFocusRatio = 0.5;
+    this._winSoundPlayed = false;
 
     if (levelData && levelData.backgrounds) this.loadLevel(levelData);
     requestAnimationFrame(this.loop.bind(this));
@@ -74,7 +75,10 @@ class World {
    * @returns {void}
    */
   loadLevel(levelData) {
-    try { Level.load(this, levelData); } catch (e) {}
+    try { 
+      this._winSoundPlayed = false;
+      Level.load(this, levelData); 
+    } catch (e) {}
   }
 
   /**

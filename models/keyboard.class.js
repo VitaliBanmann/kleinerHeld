@@ -1,15 +1,19 @@
 class Keyboard {
+    /**
+     * Key states for various controls.
+     * @type {{ LEFT: boolean, RIGHT: boolean, SPACE: boolean, E: boolean, Q: boolean, P: boolean, W: boolean, D1: boolean, D2: boolean, D3: boolean, ENTER: boolean }}
+     */
     LEFT = false; RIGHT = false; SPACE = false; E = false; Q = false; P = false; W = false; D1 = false; D2 = false; D3 = false;
     ENTER = false;
 
     /**
-     * Bindet Tastatur- und Touch/Pointer-Ereignisse.
-     * Muss nach DOM-Bereitstellung aufgerufen werden.
+     * Binds keyboard and touch/pointer events.
+     * Must be called after the DOM is ready.
      */
     mapEvents() {
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Enter') this.ENTER = true;
-            if (['Enter','Space'].includes(e.code) && window.Overlay?.isBlocking?.()) {
+            if (['Enter', 'Space'].includes(e.code) && window.Overlay?.isBlocking?.()) {
                 window.Overlay.handleActionPrimary();
             }
             if (e.code === 'KeyA') this.LEFT = true;
@@ -55,9 +59,9 @@ class Keyboard {
     }
 
     /**
-     * Setzt ein Flag kurzzeitig auf true (Puls) und danach automatisch auf false.
-     * @param {keyof Keyboard} prop Property-Name (Flag)
-     * @param {number} [duration=60] Dauer in ms
+     * Sets a flag temporarily to true (pulse) and then automatically to false.
+     * @param {keyof Keyboard} prop - Property name (flag)
+     * @param {number} [duration=60] - Duration in ms
      */
     pulse(prop, duration = 60) {
         this[prop] = true;
@@ -65,17 +69,17 @@ class Keyboard {
     }
 
     /**
-     * Bindet einen "Hold"-Button (gedrückt halten = dauerhaft true).
-     * Unterstützt Touch / Pointer / Maus.
-     * @param {string} id Element-ID
-     * @param {keyof Keyboard} prop Flag-Name
+     * Binds a "Hold" button (holding down = permanently true).
+     * Supports touch/pointer/mouse.
+     * @param {string} id - Element ID
+     * @param {keyof Keyboard} prop - Flag name
      */
     bindHoldButton(id, prop) {
         const el = document.getElementById(id);
         if (!el) return;
 
         const down = (e) => { e.preventDefault(); this[prop] = true; };
-        const up   = (e) => { e.preventDefault(); this[prop] = false; };
+        const up = (e) => { e.preventDefault(); this[prop] = false; };
 
         el.addEventListener('touchstart', down, { passive: false });
         el.addEventListener('touchend', up, { passive: false });
@@ -91,9 +95,9 @@ class Keyboard {
     }
 
     /**
-     * Bindet einen "Tap"-Button (kurzer Puls über Handler).
-     * @param {string} id Element-ID
-     * @param {Function} handler Auszuführende Aktion
+     * Binds a "Tap" button (short pulse via handler).
+     * @param {string} id - Element ID
+     * @param {Function} handler - Action to execute
      */
     bindTapButton(id, handler) {
         const el = document.getElementById(id);
@@ -105,4 +109,5 @@ class Keyboard {
         el.addEventListener('click', exec);
     }
 }
+
 window.Keyboard = Keyboard;

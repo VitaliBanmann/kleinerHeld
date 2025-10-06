@@ -117,6 +117,7 @@ World.prototype.updateCoins = function(dt) {
 /**
  * Checks whether the character reached level end and triggers transition.
  * Only allows level end if boss is dead or doesn't exist.
+ * Also plays the win SFX immediately upon touching the level end.
  * @this {World}
  * @returns {void}
  */
@@ -126,7 +127,13 @@ World.prototype.checkLevelEnd = function() {
   
   const a = Collision.rect(this.character);
   const b = Collision.rect(this.levelEndObject);
-  if (Collision.intersects(a, b)) Level.handleEnd(this);
+  if (Collision.intersects(a, b)) {
+    if (!this._winSoundPlayed) {
+      AudioManager.playSfx?.('win');
+      this._winSoundPlayed = true;
+    }
+    Level.handleEnd(this);
+  }
 };
 
 /**

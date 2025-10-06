@@ -1,13 +1,13 @@
 class Combat {
 
     /**
-     * Wendet horizontalen Rückstoß auf ein Zielobjekt an.
-     * Richtung: vom Angreifer weg.
-     * Clamped anschließend optional über world.clampX.
-     * @param {Object} world Welt-Instanz (optional clampX)
-     * @param {Object} target Ziel-Entity (muss x,width,scale besitzen)
-     * @param {Object} from Angreifer (für Richtungsbestimmung; optional)
-     * @param {number} [amount=30] Verschiebung in Pixeln
+     * Applies horizontal knockback to a target object.
+     * Direction: away from the attacker.
+     * Clamped afterwards optionally via world.clampX.
+     * @param {Object} world World instance (optional clampX)
+     * @param {Object} target Target entity (must have x, width, scale)
+     * @param {Object} from Attacker (for direction determination; optional)
+     * @param {number} [amount=30] Offset in pixels
      */
     static applyKnockback(world, target, from, amount = 30) {
         if (!target) return;
@@ -21,7 +21,7 @@ class Combat {
     }
 
     /**
-     * Spieler Nahkampfangriff: erstellt ein Angriffs-Rechteck, sammelt Treffer, wendet Schaden/Rückstoß an.
+     * Player melee attack: creates an attack rectangle, collects hits, applies damage/knockback.
      * @param {Object} world
      * @param {string} [kind='attack']
      * @returns {void}
@@ -58,7 +58,7 @@ class Combat {
         return hits;
     }
 
-    /** Fügt Schaden und Rückstoß hinzu (kein Rückstoß für den Boss). */
+    /** Adds damage and knockback (no knockback for the boss). */
     static applyHits(world, c, targets, dmg) {
         for (const t of targets) {
             t.takeDamage?.(dmg);

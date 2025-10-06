@@ -1,6 +1,6 @@
 class HUD {
     /**
-     * Zentrale Layout- und Farb-Konfiguration.
+     * Central layout and color configuration.
      * @type {{
      *   fontFamily:string,
      *   letterSpacingEm:number,
@@ -38,7 +38,7 @@ class HUD {
     };
 
     /**
-     * Vorgebundene Bilder (Icons / Buttons).
+     * Preloaded images (icons/buttons).
      * @type {{
      *   heart:HTMLImageElement,
      *   coin:HTMLImageElement,
@@ -67,15 +67,15 @@ class HUD {
     };
 
     /**
-     * Lädt ein Bild (Hilfsfunktion).
-     * @param {string} src Pfad
-     * @returns {HTMLImageElement}
+     * Loads an image (helper function).
+     * @param {string} src - The image path.
+     * @returns {HTMLImageElement} - The loaded image element.
      */
     static loadImage(src) { const img = new Image(); img.src = src; return img; }
 
     /**
-     * Liest Powerup-Preise aus globalem Powerups-Objekt (Fallback-Werte).
-     * @returns {{heart:number,weapon:number,lucky:number,invuln:number}}
+     * Reads power-up prices from the global Powerups object (fallback values).
+     * @returns {{heart:number,weapon:number,lucky:number,invuln:number}} - The prices for power-ups.
      */
     static prices() {
         const p = (window.Powerups?.prices) || {};
@@ -88,10 +88,10 @@ class HUD {
     }
 
     /**
-     * Prozentuale X-Position (cfg['x%'] * canvas.width).
-     * @param {HTMLCanvasElement} canvas
-     * @param {Object} cfg
-     * @returns {number}
+     * Calculates the X position in pixels based on percentage.
+     * @param {HTMLCanvasElement} canvas - The canvas element.
+     * @param {Object} cfg - The configuration object.
+     * @returns {number} - The calculated X position in pixels.
      */
     static xPx(canvas, cfg) {
         if (typeof cfg['x%'] === 'number') return Math.floor(canvas.width * cfg['x%']);
@@ -99,10 +99,10 @@ class HUD {
     }
 
     /**
-     * Prozentuale Breite (cfg['width%'] * canvas.width).
-     * @param {HTMLCanvasElement} canvas
-     * @param {Object} cfg
-     * @returns {number}
+     * Calculates the width in pixels based on percentage.
+     * @param {HTMLCanvasElement} canvas - The canvas element.
+     * @param {Object} cfg - The configuration object.
+     * @returns {number} - The calculated width in pixels.
      */
     static wPx(canvas, cfg) {
         if (typeof cfg['width%'] === 'number') return Math.floor(canvas.width * cfg['width%']);
@@ -110,10 +110,10 @@ class HUD {
     }
 
     /**
-     * Zeichnet vollständiges HUD (Healthbar, Herzen, Powerups, Coins + Buttons).
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {HTMLCanvasElement} canvas
-     * @param {Object} world
+     * Draws the complete HUD (health bar, hearts, power-ups, coins + buttons).
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+     * @param {HTMLCanvasElement} canvas - The target canvas.
+     * @param {Object} world - The world object.
      */
     static draw(ctx, canvas, world) {
         const c = world?.character ?? {};
@@ -137,11 +137,11 @@ class HUD {
     }
 
     /**
-     * Zeichnet Lebensbalken mit dynamischer Farbe.
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {HTMLCanvasElement} canvas
-     * @param {number} health
-     * @param {number} maxHealth
+     * Draws the health bar with dynamic color.
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+     * @param {HTMLCanvasElement} canvas - The target canvas.
+     * @param {number} health - The current health.
+     * @param {number} maxHealth - The maximum health.
      */
     static drawHealthBar(ctx, canvas, health, maxHealth) {
         const S = HUD.SETTINGS, cfg = S.layout.healthBar;
@@ -187,12 +187,12 @@ class HUD {
     }
 
     /**
-     * Zeichnet Herz-Slots und Hinweistext (Kauf/Nutzung).
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {HTMLCanvasElement} canvas
-     * @param {number} hearts
-     * @param {number} health
-     * @param {number} maxHealth
+     * Draws heart slots and hint text (purchase/use).
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D context.
+     * @param {HTMLCanvasElement} canvas - The target canvas.
+     * @param {number} hearts - The number of hearts.
+     * @param {number} health - The current health.
+     * @param {number} maxHealth - The maximum health.
      */
     static drawHearts(ctx, canvas, hearts, health, maxHealth) {
         const cfg = HUD.SETTINGS.layout.hearts, size = cfg.size, gap = cfg.gap, y = cfg.y;
@@ -221,7 +221,7 @@ class HUD {
     }
 
     /**
-     * Zeichnet Powerup-Slots (Waffe, Glück, Unverwundbarkeit).
+     * Draw Powerup-Slots (Weapon, Luck, Invulnerability).
      * Split into per-slot helpers.
      * @param {CanvasRenderingContext2D} ctx
      * @param {HTMLCanvasElement} canvas
@@ -277,7 +277,7 @@ class HUD {
     }
 
     /**
-     * Zeichnet Coin-Anzeige und Steuer-Buttons (Fullscreen / Sound / Pause).
+     * Draw Coin display and control buttons (Fullscreen / Sound / Pause).
      * Split: buttons drawing on desktop is delegated to a helper.
      * @param {CanvasRenderingContext2D} ctx
      * @param {HTMLCanvasElement} canvas
@@ -314,7 +314,7 @@ class HUD {
     }
 
     /**
-     * Zeichnet einen Button mit Icon.
+     * Draws a button with an icon.
      * @param {CanvasRenderingContext2D} ctx
      * @param {HTMLImageElement} img
      * @param {number} x
@@ -337,11 +337,11 @@ class HUD {
     }
 
     /**
-     * Behandelt Klick auf HUD-Buttons.
+     * Handles clicks on HUD buttons.
      * @param {number} x
      * @param {number} y
      * @param {Object} world
-     * @returns {boolean} true wenn Button getroffen
+     * @returns {boolean} true if button is hit
      */
     static handleClick(x, y, world) {
         if (!HUD.btnAreas) return false;
@@ -356,10 +356,10 @@ class HUD {
     }
 
     /**
-     * Misst Textbreite mit künstlichem Letter-Spacing.
+     * Measures text width with artificial letter-spacing.
      * @param {CanvasRenderingContext2D} ctx
      * @param {string} text
-     * @param {number} size Fontgröße
+     * @param {number} size Fontsize
      * @param {number} lsEm Letter-Spacing in Em
      * @returns {number}
      */
@@ -374,7 +374,7 @@ class HUD {
     }
 
     /**
-     * Zeichnet generischen Text-Button (derzeit ungenutzt).
+     * Draws a generic text button (currently unused).
      * Split into frame and label-fit helpers.
      * @param {CanvasRenderingContext2D} ctx
      * @param {number} x
@@ -408,7 +408,7 @@ class HUD {
     }
 
     /**
-     * Zeichnet Text mit eigenem Letter-Spacing.
+     * Draws text with custom letter-spacing.
      * Split into style, layout, and draw helpers.
      * @param {CanvasRenderingContext2D} ctx
      * @param {string} text
@@ -454,7 +454,7 @@ class HUD {
     }
 
     /**
-     * Zeichnet ein abgerundetes Rechteck.
+     * Draws a rounded rectangle.
      * @param {CanvasRenderingContext2D} ctx
      * @param {number} x
      * @param {number} y

@@ -12,15 +12,15 @@ class Powerups {
     };
 
     /**
-     * Interner Edge-Detect Status für Eingabetasten (Flags zuletzt gedrückt).
+     * Internal edge-detect status for input keys (flags last pressed).
      * @type {{W:boolean,D1:boolean,D2:boolean,D3:boolean}}
      * @private
      */
     static pressed = { W:false, D1:false, D2:false, D3:false };
 
     /**
-     * Stellt sicher, dass alle benötigten Charakter-Properties vorhanden sind (Defaultwerte).
-     * @param {Object} c Character Instanz
+     * Ensures all required character properties are present (default values).
+     * @param {Object} c Character instance
      */
     static ensureCharacterProps(c) {
         if (typeof c.coins !== 'number') c.coins = 0;
@@ -34,10 +34,10 @@ class Powerups {
     }
 
     /**
-     * Haupt-Update: verarbeitet Timer, Edge-Inputs und führt Käufe / Aktivierungen aus.
-     * @param {Object} world Welt (enthält character)
+     * Main update: processes timers, edge inputs, and performs purchases/activations.
+     * @param {Object} world World (contains character)
      * @param {number} dt Delta ms
-     * @param {Object} keyboard Eingabeobjekt mit Flags (W,D1,D2,D3)
+     * @param {Object} keyboard Input object with flags (W,D1,D2,D3)
      */
     static update(world, dt, keyboard) {
         const c = world.character;
@@ -55,10 +55,10 @@ class Powerups {
         }
 
         /**
-         * Edge-Detection für Tasten (nur auf steigender Flanke true).
+         * Edge-detection for keys (only on rising edge true).
          * @param {'W'|'D1'|'D2'|'D3'} code
-         * @param {boolean} now Aktueller Tastenzustand
-         * @returns {boolean} true wenn gerade neu gedrückt
+         * @param {boolean} now Current key state
+         * @returns {boolean} true if just pressed
          */
         const edge = (code, now) => {
             const was = Powerups.pressed[code] || false;
@@ -66,7 +66,7 @@ class Powerups {
             return now && !was;
         };
 
-        // W: Herz kaufen oder heilen
+        // W: Buy heart or heal
         if (edge('W', keyboard?.W)) {
             const missing = Math.max(0, (c.maxHealth || 0) - (c.health || 0));
             if ((c.hearts || 0) > 0 && missing >= 30) {
@@ -79,7 +79,7 @@ class Powerups {
             }
         }
 
-        // 1: Waffe upgraden
+        // 1: Upgrade weapon
         if (edge('D1', keyboard?.D1)) {
             if (c.weaponLevel < 3 && (c.coins || 0) >= Powerups.prices.weapon) {
                 c.coins -= Powerups.prices.weapon;
@@ -87,7 +87,7 @@ class Powerups {
             }
         }
 
-        // 2: Lucky kaufen
+        // 2: Buy lucky
         if (edge('D2', keyboard?.D2)) {
             if (!c.luckyPowerup && (c.coins || 0) >= Powerups.prices.lucky) {
                 c.coins -= Powerups.prices.lucky;
@@ -95,7 +95,7 @@ class Powerups {
             }
         }
 
-        // 3: Invuln kaufen oder aktivieren
+        // 3: Buy or activate invulnerability
         if (edge('D3', keyboard?.D3)) {
             if (!c.invulnPowerup && (c.coins || 0) >= Powerups.prices.invuln) {
                 c.coins -= Powerups.prices.invuln;

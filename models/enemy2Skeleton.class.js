@@ -1,5 +1,5 @@
 class EnemySkeleton extends MoveableObject {
-    img = './assets/enemy/1Skeleton/Idle.png';
+    img = './assets/enemy/2Skeleton/Idle.png';
 
     width = 50;
     height = 50;

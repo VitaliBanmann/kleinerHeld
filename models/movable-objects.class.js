@@ -5,7 +5,6 @@ class MoveableObject {
     height = 50;
     width = 50;
     speed = 5;
-   
     imageCache = {};
 
     HitboxOffsetX = 0;
@@ -14,8 +13,8 @@ class MoveableObject {
     HitboxHeight = null;
 
     /**
-     * Lädt ein einzelnes Bild und setzt es als aktuelles Sprite.
-     * @param {string} path Bildpfad
+     * Loads a single image and sets it as the current sprite.
+     * @param {string} path - The path to the image.
      */
     loadImage(path) {
         const image = new Image();
@@ -24,8 +23,8 @@ class MoveableObject {
     }
 
     /**
-     * Lädt mehrere Bilder in den Cache (für Animationen).
-     * @param {string[]} arr Pfadliste
+     * Loads multiple images into the cache for animations.
+     * @param {string[]} arr - List of image paths.
      */
     loadImages(arr) {
         arr.forEach((path) => {
@@ -36,16 +35,16 @@ class MoveableObject {
     }
 
     /**
-     * Überträgt alle übergebenen Eigenschaften in die Instanz.
-     * @param {Object} def Plain-Objekt mit zu übernehmenden Feldern
+     * Applies the properties from the given definition object to the instance.
+     * @param {Object} def - Plain object with properties to apply.
      */
     applyDefinition(def) {
         Object.assign(this, def);
     }
 
     /**
-     * Bewegt Objekt nach rechts (einfache Hilfsfunktion).
-     * Setzt direction=false (Blick nach rechts).
+     * Moves the object to the right.
+     * Sets direction to false (facing right).
      */
     moveRight() {
         this.x += this.speed;
@@ -53,8 +52,8 @@ class MoveableObject {
     }
 
     /**
-     * Bewegt Objekt nach links.
-     * Setzt direction=true (Blick nach links).
+     * Moves the object to the left.
+     * Sets direction to true (facing left).
      */
     moveLeft() {
         this.x -= this.speed;
@@ -62,9 +61,8 @@ class MoveableObject {
     }
 
     /**
-     * Wendet Schaden an (sofern health definiert und noch nicht tot).
-     * Setzt Hurt-State kurzzeitig, ruft bei <=0 HP die Todeslogik auf.
-     * @param {number} [amount=0] Schadensmenge
+     * Applies damage to the object if health is defined and not dead.
+     * @param {number} [amount=0] - The amount of damage to apply.
      */
     takeDamage(amount = 0) {
         if (this.invulnActive) return;
@@ -84,7 +82,7 @@ class MoveableObject {
     }
 
     /**
-     * Markiert Objekt als tot und setzt Death-Animation (falls vorhanden).
+     * Marks the object as dead and triggers death animation if available.
      */
     die() {
         if (this.isDead) return;
@@ -94,11 +92,8 @@ class MoveableObject {
     }
 
     /**
-     * Generic animation update loop.
-     * Uses animations[state], frameIndex and a per-state or default duration.
-     * Death state advances once to last frame and then stops.
-     * @param {number} dt Delta time in ms
-     * @returns {void}
+     * Updates the animation based on the elapsed time.
+     * @param {number} dt - Delta time in milliseconds.
      */
     updateAnimation(dt) {
         if (!this.animations || !this.state) return;
@@ -109,12 +104,20 @@ class MoveableObject {
         this.stepAnimationFrames(frames, dur);
     }
 
-    /** Resolves frame duration using optional getFrameDurationForState. */
+    /**
+     * Resolves the frame duration for the current animation state.
+     * @param {string} state - The current animation state.
+     * @returns {number} - The resolved frame duration.
+     */
     resolveFrameDuration(state) {
         return (this.getFrameDurationForState?.(state)) || this.frameDuration || 200;
     }
 
-    /** Consumes accumulator and steps frames; handles death specially. */
+    /**
+     * Steps through the animation frames based on the accumulated time.
+     * @param {Array} frames - The frames of the current animation.
+     * @param {number} dur - The duration of each frame.
+     */
     stepAnimationFrames(frames, dur) {
         while (this._animAcc >= dur) {
             this._animAcc -= dur;
@@ -123,7 +126,10 @@ class MoveableObject {
         }
     }
 
-    /** Advances death animation and flags completion at last frame. */
+    /**
+     * Advances the death animation and marks it as complete at the last frame.
+     * @param {Array} frames - The frames of the death animation.
+     */
     advanceDeathFrame(frames) {
         if (this.frameIndex < frames.length - 1) {
             this.frameIndex++;

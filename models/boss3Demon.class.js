@@ -6,8 +6,8 @@ class BossDemon extends MoveableObject {
     height = 150;
     direction = true;
     speed = 0.7;
-    health = 50;
-    maxHealth = 50;
+    health = 60;
+    maxHealth = 60;
     bossSoundRange = 1100;
 
     // Hitbox properties

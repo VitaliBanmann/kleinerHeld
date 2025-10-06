@@ -29,7 +29,7 @@ class EnemyMinotaur extends MoveableObject {
     deathAnimationPlayed = false;
     deathAnimationComplete = false;
 
-    // Angriff
+    // Attack
     attackCooldown = 0;
     attackRange = 85;
     attackDamage = 12;
@@ -40,7 +40,8 @@ class EnemyMinotaur extends MoveableObject {
     frameDuration = 200;
 
     /**
-     * @param {number} [groundY=520]
+     * Creates an instance of EnemyMinotaur.
+     * @param {number} [groundY=520] - The ground Y position for placement.
      */
     constructor(groundY = 520) {
         super();
@@ -51,8 +52,7 @@ class EnemyMinotaur extends MoveableObject {
     }
 
     /**
-     * Builds animation frames from MINOTAUR_IMAGES definition.
-     * Delegates sheet slicing to a helper to keep it short.
+     * Loads animation frames from the MINOTAUR_IMAGES definition.
      * @returns {void}
      */
     loadAnimations() {
@@ -65,12 +65,12 @@ class EnemyMinotaur extends MoveableObject {
 
     /**
      * Slices a sprite sheet into frame descriptors.
-     * @param {{src:string,width:number,height:number,frames:number}} sheet
-     * @returns {Array<Object>}
+     * @param {{src:string,width:number,height:number,frames:number}} sheet - The sprite sheet definition.
+     * @returns {Array<Object>} - An array of frame descriptors.
      */
     buildFramesFromSheet(sheet) {
         const img = new Image(); img.src = sheet.src;
-        img.onerror = () => console.warn('Bild nicht gefunden:', img.src);
+        img.onerror = () => console.warn('Image not found:', img.src);
         const fw = Math.floor(sheet.width / sheet.frames), fh = sheet.height;
         const frames = [];
         for (let i = 0; i < sheet.frames; i++) {
@@ -80,7 +80,8 @@ class EnemyMinotaur extends MoveableObject {
     }
 
     /**
-     * @returns {{img:HTMLImageElement,sx:number,sy:number,sw:number,sh:number,width:number,height:number}|null}
+     * Gets the current animation frame.
+     * @returns {{img:HTMLImageElement,sx:number,sy:number,sw:number,sh:number,width:number,height:number}|null} - The current frame or null if not available.
      */
     getCurrentFrame() {
         let frames = this.animations[this.state];
@@ -89,9 +90,9 @@ class EnemyMinotaur extends MoveableObject {
     }
 
     /**
-     * Zustand setzen.
-     * @param {string} next
-     * @param {{reset?:boolean}} [options]
+     * Sets the state of the enemy.
+     * @param {string} next - The next state to set.
+     * @param {{reset?:boolean}} [options] - Options for resetting the state.
      */
     setState(next, { reset = false } = {}) {
         if (this.state !== next || reset) {
@@ -101,8 +102,8 @@ class EnemyMinotaur extends MoveableObject {
     }
 
     /**
-     * State-Logik.
-     * @param {number} dt
+     * Updates the enemy's state based on its flags.
+     * @param {number} dt - Delta time in milliseconds.
      */
     update(dt) {
         if (this.isDead) this.setState('death');
