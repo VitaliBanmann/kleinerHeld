@@ -20,17 +20,17 @@ class Powerups {
 
     /**
      * Ensures all required character properties are present (default values).
-     * @param {Object} c Character instance
+     * @param {Object} character Character instance
      */
-    static ensureCharacterProps(c) {
-        if (typeof c.coins !== 'number') c.coins = 0;
-        if (typeof c.hearts !== 'number') c.hearts = 0;
-        if (typeof c.weaponLevel !== 'number') c.weaponLevel = 0;
-        if (typeof c.luckyPowerup !== 'boolean') c.luckyPowerup = false;
-        if (typeof c.invulnPowerup !== 'boolean') c.invulnPowerup = false;
-        if (typeof c.invulnActive !== 'boolean') c.invulnActive = false;
-        if (typeof c.invulnCooldown !== 'number') c.invulnCooldown = 0;
-        if (typeof c.invulnTimer !== 'number') c.invulnTimer = 0;
+    static ensureCharacterProps(character) {
+        if (typeof character.coins !== 'number') character.coins = 0;
+        if (typeof character.hearts !== 'number') character.hearts = 0;
+        if (typeof character.weaponLevel !== 'number') character.weaponLevel = 0;
+        if (typeof character.luckyPowerup !== 'boolean') character.luckyPowerup = false;
+        if (typeof character.invulnPowerup !== 'boolean') character.invulnPowerup = false;
+        if (typeof character.invulnActive !== 'boolean') character.invulnActive = false;
+        if (typeof character.invulnCooldown !== 'number') character.invulnCooldown = 0;
+        if (typeof character.invulnTimer !== 'number') character.invulnTimer = 0;
     }
 
     /**
@@ -53,90 +53,90 @@ class Powerups {
 
     /**
      * Updates invulnerability timers and cooldowns.
-     * @param {any} c Character
-     * @param {number} dt Delta ms
+     * @param {any} character Character
+     * @param {number} deltaTime Delta ms
      */
-    static updateInvulnTimers(c, dt) {
-        if (c.invulnActive) {
-            c.invulnTimer = Math.max(0, c.invulnTimer - dt);
-            if (c.invulnTimer <= 0) {
-                c.invulnActive = false;
-                c.invulnCooldown = Powerups.invuln.cooldown;
+    static updateInvulnTimers(character, deltaTime) {
+        if (character.invulnActive) {
+            character.invulnTimer = Math.max(0, character.invulnTimer - deltaTime);
+            if (character.invulnTimer <= 0) {
+                character.invulnActive = false;
+                character.invulnCooldown = Powerups.invuln.cooldown;
             }
         } else {
-            c.invulnCooldown = Math.max(0, c.invulnCooldown - dt);
+            character.invulnCooldown = Math.max(0, character.invulnCooldown - deltaTime);
         }
     }
 
     /**
      * Returns true once when a key transitions to pressed.
-     * @param {'W'|'D1'|'D2'|'D3'} code
-     * @param {boolean} now Current key state
+     * @param {'W'|'D1'|'D2'|'D3'} keyCode
+     * @param {boolean} currentState Current key state
      * @returns {boolean}
      */
-    static isJustPressed(code, now) {
-        const was = Powerups.pressed[code] || false;
-        Powerups.pressed[code] = !!now;
-        return !!now && !was;
+    static isJustPressed(keyCode, currentState) {
+        const previousState = Powerups.pressed[keyCode] || false;
+        Powerups.pressed[keyCode] = !!currentState;
+        return !!currentState && !previousState;
     }
 
     /**
      * Buys a heart or heals when W is pressed.
-     * @param {any} c Character
+     * @param {any} character Character
      * @param {any} keyboard Keyboard state
      */
-    static handleHeart(c, keyboard) {
+    static handleHeart(character, keyboard) {
         if (!this.isJustPressed('W', keyboard?.W)) return;
-        const missing = Math.max(0, (c.maxHealth || 0) - (c.health || 0));
-        if ((c.hearts || 0) > 0 && missing >= 30) {
-            const heal = 30;
-            c.health = Math.min(c.maxHealth, c.health + heal);
-            c.hearts -= 1;
-        } else if ((c.coins || 0) >= Powerups.prices.heart) {
-            c.coins -= Powerups.prices.heart;
-            c.hearts += 1;
+        const missingHealth = Math.max(0, (character.maxHealth || 0) - (character.health || 0));
+        if ((character.hearts || 0) > 0 && missingHealth >= 30) {
+            const healAmount = 30;
+            character.health = Math.min(character.maxHealth, character.health + healAmount);
+            character.hearts -= 1;
+        } else if ((character.coins || 0) >= Powerups.prices.heart) {
+            character.coins -= Powerups.prices.heart;
+            character.hearts += 1;
         }
     }
 
     /**
      * Upgrades weapon on key 1.
-     * @param {any} c Character
+     * @param {any} character Character
      * @param {any} keyboard Keyboard state
      */
-    static handleWeaponUpgrade(c, keyboard) {
+    static handleWeaponUpgrade(character, keyboard) {
         if (!this.isJustPressed('D1', keyboard?.D1)) return;
-        if (c.weaponLevel < 3 && (c.coins || 0) >= Powerups.prices.weapon) {
-            c.coins -= Powerups.prices.weapon;
-            c.weaponLevel += 1;
+        if (character.weaponLevel < 3 && (character.coins || 0) >= Powerups.prices.weapon) {
+            character.coins -= Powerups.prices.weapon;
+            character.weaponLevel += 1;
         }
     }
 
     /**
      * Purchases lucky power-up on key 2.
-     * @param {any} c Character
+     * @param {any} character Character
      * @param {any} keyboard Keyboard state
      */
-    static handleLuckyPurchase(c, keyboard) {
+    static handleLuckyPurchase(character, keyboard) {
         if (!this.isJustPressed('D2', keyboard?.D2)) return;
-        if (!c.luckyPowerup && (c.coins || 0) >= Powerups.prices.lucky) {
-            c.coins -= Powerups.prices.lucky;
-            c.luckyPowerup = true;
+        if (!character.luckyPowerup && (character.coins || 0) >= Powerups.prices.lucky) {
+            character.coins -= Powerups.prices.lucky;
+            character.luckyPowerup = true;
         }
     }
 
     /**
      * Buys or activates invulnerability on key 3.
-     * @param {any} c Character
+     * @param {any} character Character
      * @param {any} keyboard Keyboard state
      */
-    static handleInvuln(c, keyboard) {
+    static handleInvuln(character, keyboard) {
         if (!this.isJustPressed('D3', keyboard?.D3)) return;
-        if (!c.invulnPowerup && (c.coins || 0) >= Powerups.prices.invuln) {
-            c.coins -= Powerups.prices.invuln;
-            c.invulnPowerup = true;
-        } else if (c.invulnPowerup && !c.invulnActive && c.invulnCooldown <= 0) {
-            c.invulnActive = true;
-            c.invulnTimer = Powerups.invuln.duration;
+        if (!character.invulnPowerup && (character.coins || 0) >= Powerups.prices.invuln) {
+            character.coins -= Powerups.prices.invuln;
+            character.invulnPowerup = true;
+        } else if (character.invulnPowerup && !character.invulnActive && character.invulnCooldown <= 0) {
+            character.invulnActive = true;
+            character.invulnTimer = Powerups.invuln.duration;
         }
     }
 }

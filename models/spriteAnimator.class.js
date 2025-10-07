@@ -1,7 +1,7 @@
 class SpriteAnimator {
     /**
      * Creates an instance of SpriteAnimator.
-     * @param {{ image: HTMLImageElement, frameWidth: number, frameHeight: number, frameCount: number, frameDuration?: number }} params - Parameters for the animator.
+     * @param {{ image: HTMLImageElement, frameWidth: number, frameHeight: number, frameCount: number, frameDuration?: number }} parameters - Parameters for the animator.
      */
     constructor({ image, frameWidth, frameHeight, frameCount, frameDuration = 100 }) {
         this.image = image;
@@ -10,7 +10,7 @@ class SpriteAnimator {
         this.frameCount = frameCount;
         this.frameDuration = frameDuration;
 
-        this.index = 0;
+        this.currentFrameIndex = 0;
         this.accumulatedMs = 0;
     }
 
@@ -23,7 +23,7 @@ class SpriteAnimator {
         this.accumulatedMs += deltaTime;
         while (this.accumulatedMs >= this.frameDuration) {
             this.accumulatedMs -= this.frameDuration;
-            this.index = (this.index + 1) % this.frameCount;
+            this.currentFrameIndex = (this.currentFrameIndex + 1) % this.frameCount;
         }
     }
 
@@ -32,11 +32,11 @@ class SpriteAnimator {
      * @returns {{ sx: number, sy: number, sw: number, sh: number }}
      */
     getSourceRect() {
-        const sw = this.frameWidth;
-        const sh = this.frameHeight;
-        const sx = (this.index % this.frameCount) * sw;
-        const sy = 0;
-        return { sx, sy, sw, sh };
+        const sourceWidth = this.frameWidth;
+        const sourceHeight = this.frameHeight;
+        const sourceX = (this.currentFrameIndex % this.frameCount) * sourceWidth;
+        const sourceY = 0;
+        return { sx: sourceX, sy: sourceY, sw: sourceWidth, sh: sourceHeight };
     }
 }
 

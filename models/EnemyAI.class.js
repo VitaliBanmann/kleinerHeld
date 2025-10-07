@@ -18,17 +18,17 @@ class EnemyAI {
   /**
    * Builds positional context used by AI decisions.
    * @param {any} character Character
-   * @param {any} object Enemy/Boss
-   * @param {number} range Attack range in px
+   * @param {any} gameObject Enemy/Boss
+   * @param {number} attackRange Attack range in px
    * @returns {{enemyRect:object,characterRect:object,enemyCenterX:number,characterCenterX:number,distance:number,inRange:boolean,facingLeft:boolean,range:number}}
    */
-  static buildContext(character, object, range) {
-    const enemyRect = Collision.rect(object);
+  static buildContext(character, gameObject, attackRange) {
+    const enemyRect = Collision.rect(gameObject);
     const characterRect = Collision.rect(character);
     const enemyCenterX = enemyRect.x + enemyRect.w / 2;
     const characterCenterX = characterRect.x + characterRect.w / 2;
     const distance = Math.abs(characterCenterX - enemyCenterX);
-    const inRange = distance <= range;
+    const inRange = distance <= attackRange;
     const facingLeft = characterCenterX < enemyCenterX;
     return { 
       enemyRect, 
@@ -38,7 +38,7 @@ class EnemyAI {
       distance, 
       inRange, 
       facingLeft, 
-      range 
+      range: attackRange 
     };
   }
 
@@ -52,8 +52,8 @@ class EnemyAI {
   }
 
   /** Decrements attack cooldown in milliseconds. */
-  static tickAttackCooldown(object, deltaTime) {
-    object.attackCooldown = Math.max(0, (object.attackCooldown || 0) - deltaTime);
+  static tickAttackCooldown(gameObject, deltaTime) {
+    gameObject.attackCooldown = Math.max(0, (gameObject.attackCooldown || 0) - deltaTime);
   }
 
   /** Attempts an enemy attack when conditions are met. */
@@ -68,32 +68,32 @@ class EnemyAI {
   }
 
   /** Starts an attack animation/flags and plays SFX. */
-  static startAttack(object) {
-    object.isAttacking = true;
-    object.setState?.('attack', { reset: true });
+  static startAttack(gameObject) {
+    gameObject.isAttacking = true;
+    gameObject.setState?.('attack', { reset: true });
     AudioManager?.playSfx?.('spear');
   }
 
   /** Builds an attack rectangle from a base rect, range and facing. */
-  static buildAttackRect(rect, range, facingLeft) {
+  static buildAttackRect(baseRect, attackRange, facingLeft) {
     return {
-      x: facingLeft ? rect.x - range : rect.x + rect.w,
-      y: rect.y,
-      w: range,
-      h: rect.h,
+      x: facingLeft ? baseRect.x - attackRange : baseRect.x + baseRect.w,
+      y: baseRect.y,
+      w: attackRange,
+      h: baseRect.h,
     };
   }
 
   /**
    * Sets cooldown and resets attack flag after a timeout.
-   * @param {Object} object
+   * @param {Object} gameObject
    * @param {number} cooldownMs
    * @param {number} timeoutMs
    */
-  static afterAttack(object, cooldownMs, timeoutMs) {
-    object.attackCooldown = cooldownMs;
+  static afterAttack(gameObject, cooldownMs, timeoutMs) {
+    gameObject.attackCooldown = cooldownMs;
     setTimeout(() => {
-      object.isAttacking = false;
+      gameObject.isAttacking = false;
     }, timeoutMs);
   }
 
@@ -122,9 +122,9 @@ class EnemyAI {
     const boss = world?.boss;
     const character = world?.character;
     if (!boss || !character || boss._audioCued) return;
-    const range = Number(boss.bossSoundRange) || EnemyAI.DEFAULT_BOSS_SOUND_RANGE;
+    const soundRange = Number(boss.bossSoundRange) || EnemyAI.DEFAULT_BOSS_SOUND_RANGE;
     const distanceX = Math.abs((character.x ?? 0) - (boss.x ?? 0));
-    if (distanceX > range) return;
+    if (distanceX > soundRange) return;
     let soundKey = null;
     if (boss instanceof BossTroll) soundKey = 'bosstroll';
     else if (boss instanceof BossDragon) soundKey = 'bossdragon';

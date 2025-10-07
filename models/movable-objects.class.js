@@ -14,32 +14,32 @@ class MoveableObject {
 
     /**
      * Loads a single image and sets it as the current sprite.
-     * @param {string} path - The path to the image.
+     * @param {string} imagePath - The path to the image.
      */
-    loadImage(path) {
+    loadImage(imagePath) {
         const image = new Image();
-        image.src = path;
+        image.src = imagePath;
         this.img = image;
     }
 
     /**
      * Loads multiple images into the cache for animations.
-     * @param {string[]} arr - List of image paths.
+     * @param {string[]} imagePathArray - List of image paths.
      */
-    loadImages(arr) {
-        arr.forEach((path) => {
+    loadImages(imagePathArray) {
+        imagePathArray.forEach((imagePath) => {
             let image = new Image();
-            image.src = path;
-            this.imageCache[path] = image;
+            image.src = imagePath;
+            this.imageCache[imagePath] = image;
         });
     }
 
     /**
      * Applies the properties from the given definition object to the instance.
-     * @param {Object} def - Plain object with properties to apply.
+     * @param {Object} definition - Plain object with properties to apply.
      */
-    applyDefinition(def) {
-        Object.assign(this, def);
+    applyDefinition(definition) {
+        Object.assign(this, definition);
     }
 
     /**
@@ -66,14 +66,14 @@ class MoveableObject {
 
     /**
      * Applies damage to the object if health is defined and not dead.
-     * @param {number} [amount=0] - The amount of damage to apply.
+     * @param {number} [damageAmount=0] - The amount of damage to apply.
      */
-    takeDamage(amount = 0) {
+    takeDamage(damageAmount = 0) {
         if (this.invulnActive) return;
         if (typeof this.health !== 'number') return;
         if (this.isDead) return;
 
-        this.health = Math.max(0, this.health - amount);
+        this.health = Math.max(0, this.health - damageAmount);
         if (this.health <= 0) {
             this.die();
             return;
@@ -97,47 +97,50 @@ class MoveableObject {
 
     /**
      * Updates the animation based on the elapsed time.
-     * @param {number} dt - Delta time in milliseconds.
+     * @param {number} deltaTime - Delta time in milliseconds.
      */
-    updateAnimation(dt) {
+    updateAnimation(deltaTime) {
         if (!this.animations || !this.state) return;
-        const frames = this.animations[this.state];
-        if (!frames || !frames.length) return;
-        const dur = this.resolveFrameDuration(this.state);
-        this.animAcc = (this.animAcc || 0) + dt;
-        this.stepAnimationFrames(frames, dur);
+        const animationFrames = this.animations[this.state];
+        if (!animationFrames || !animationFrames.length) return;
+        const frameDuration = this.resolveFrameDuration(this.state);
+        this.animAcc = (this.animAcc || 0) + deltaTime;
+        this.stepAnimationFrames(animationFrames, frameDuration);
     }
 
     /**
      * Resolves the frame duration for the current animation state.
-     * @param {string} state - The current animation state.
+     * @param {string} animationState - The current animation state.
      * @returns {number} - The resolved frame duration.
      */
-    resolveFrameDuration(state) {
-        return (this.getFrameDurationForState?.(state)) || this.frameDuration || 200;
+    resolveFrameDuration(animationState) {
+        return (this.getFrameDurationForState?.(animationState)) || this.frameDuration || 200;
     }
 
     /**
      * Steps through the animation frames based on the accumulated time.
-     * @param {Array} frames - The frames of the current animation.
-     * @param {number} dur - The duration of each frame.
+     * @param {Array} animationFrames - The frames of the current animation.
+     * @param {number} frameDuration - The duration of each frame.
      */
-    stepAnimationFrames(frames, dur) {
-        while (this.animAcc >= dur) {
-            this.animAcc -= dur;
-            if (this.state === 'death') { this.advanceDeathFrame(frames); return; }
-            this.frameIndex = (this.frameIndex + 1) % frames.length;
+    stepAnimationFrames(animationFrames, frameDuration) {
+        while (this.animAcc >= frameDuration) {
+            this.animAcc -= frameDuration;
+            if (this.state === 'death') { 
+                this.advanceDeathFrame(animationFrames); 
+                return; 
+            }
+            this.frameIndex = (this.frameIndex + 1) % animationFrames.length;
         }
     }
 
     /**
      * Advances the death animation and marks it as complete at the last frame.
-     * @param {Array} frames - The frames of the death animation.
+     * @param {Array} deathFrames - The frames of the death animation.
      */
-    advanceDeathFrame(frames) {
-        if (this.frameIndex < frames.length - 1) {
+    advanceDeathFrame(deathFrames) {
+        if (this.frameIndex < deathFrames.length - 1) {
             this.frameIndex++;
-            if (this.frameIndex === frames.length - 1) {
+            if (this.frameIndex === deathFrames.length - 1) {
                 this.deathAnimationPlayed = true;
                 this.deathAnimationComplete = true;
             }
