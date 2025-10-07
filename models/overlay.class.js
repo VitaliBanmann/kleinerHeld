@@ -77,7 +77,7 @@ class Overlay {
                 { id: 'start', label: 'Nochmal spielen' }, { id: 'home', label: 'Home' }
             ]),
             dead: Overlay.scrSimple('Du bist gestorben', ['Schade. Versuche es erneut.'], [
-                { id: 'restart', label: 'Neustart (ENTER)' }, { id: 'home', label: 'Home' }
+                { id: 'restart', label: 'Neustart' }, { id: 'home', label: 'Home' }
             ]),
             pause: Overlay.scrPause()
         };
@@ -678,9 +678,16 @@ class Overlay {
         try { if (typeof window.initLevel1 === 'function') window.initLevel1(); } catch {}
         const lv1 = window.level1 ?? (typeof level1 !== 'undefined' ? level1 : null);
         if (window.world && lv1) {
-            Level.load(window.world, lv1); window.world.paused = false; Overlay.state = 'none';
-            Overlay.syncDomVisibility(); try { AudioManager.playThemeForLevel?.(window.world.currentLevel); } catch {}
-        } else { Overlay.state = 'none'; Overlay.syncDomVisibility(); }
+            window.world._deathSoundPlayed = false; // <- Auch hier zurücksetzen
+            Level.load(window.world, lv1); 
+            window.world.paused = false; 
+            Overlay.state = 'none';
+            Overlay.syncDomVisibility(); 
+            try { AudioManager.playThemeForLevel?.(window.world.currentLevel); } catch {}
+        } else { 
+            Overlay.state = 'none'; 
+            Overlay.syncDomVisibility(); 
+        }
     }
 
     /**
@@ -688,11 +695,15 @@ class Overlay {
      * @returns {void}
      */
     static handleRestart() {
-        AudioManager.playSfx?.('gameover');
         Overlay.resetGameState();
         try { if (typeof window.initLevel1 === 'function') window.initLevel1(); } catch {}
-        if (window.world) { Level.load(window.world, window.level1); window.world.paused = false; }
-        Overlay.state = 'none'; Overlay.syncDomVisibility();
+        if (window.world) { 
+            window.world._deathSoundPlayed = false; // <- Zurücksetzen des Death-Sound Flags
+            Level.load(window.world, window.level1); 
+            window.world.paused = false; 
+        }
+        Overlay.state = 'none'; 
+        Overlay.syncDomVisibility();
         try { AudioManager.playThemeForLevel?.(window.world.currentLevel); } catch {}
     }
 
@@ -714,19 +725,7 @@ class Overlay {
         try { AudioManager.playThemeForLevel?.(w.currentLevel); } catch {}
     }
 
-static updatePreChecks() {
-  if (this.paused) return true;
-  if (this.character?.isDead && Overlay?.state !== 'dead') {
-    this.paused = true; 
-    Overlay.state = 'dead'; 
-    AudioManager.playSfx?.('gameover');
-    window.updatePauseIcon?.(); 
-    return true;
-  }
-  return false;
-}
-
-/**
+    /**
      * Sets the overlay state and immediately ensures buttons exist.
      * @param {string} newState - The new overlay state
      * @returns {void}

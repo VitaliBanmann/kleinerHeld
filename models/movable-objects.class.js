@@ -58,8 +58,8 @@ class MoveableObject {
      * Sets direction to true (facing left).
      */
     moveLeft() {
-        const currentXPosition = this.x; // Descriptive variable
-        const movementSpeed = this.speed; // Descriptive variable
+        const currentXPosition = this.x;
+        const movementSpeed = this.speed;
         this.x = currentXPosition - movementSpeed;
         this.direction = true;
     }
@@ -104,7 +104,7 @@ class MoveableObject {
         const frames = this.animations[this.state];
         if (!frames || !frames.length) return;
         const dur = this.resolveFrameDuration(this.state);
-        this._animAcc = (this._animAcc || 0) + dt;
+        this.animAcc = (this.animAcc || 0) + dt;
         this.stepAnimationFrames(frames, dur);
     }
 
@@ -123,8 +123,8 @@ class MoveableObject {
      * @param {number} dur - The duration of each frame.
      */
     stepAnimationFrames(frames, dur) {
-        while (this._animAcc >= dur) {
-            this._animAcc -= dur;
+        while (this.animAcc >= dur) {
+            this.animAcc -= dur;
             if (this.state === 'death') { this.advanceDeathFrame(frames); return; }
             this.frameIndex = (this.frameIndex + 1) % frames.length;
         }

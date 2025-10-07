@@ -13,7 +13,6 @@ class AudioManager {
         bossDragon: null,
         bossTroll: null,
         death: null,
-        gameOver: null,
         jump: null,
         win: null
     };
@@ -76,7 +75,6 @@ class AudioManager {
         this.soundEffects.bossDragon = new Audio('./assets/audio/dragon.mp3');
         this.soundEffects.bossTroll = new Audio('./assets/audio/troll.mp3');
         this.soundEffects.death = new Audio('./assets/audio/death-sound.mp3');
-        this.soundEffects.gameOver = new Audio('./assets/audio/game-over.mp3');
         this.soundEffects.jump = new Audio('./assets/audio/jump2.mp3');
         this.soundEffects.win = new Audio('./assets/audio/win.mp3');
         Object.values(this.soundEffects).forEach(audioElement => {
@@ -252,8 +250,7 @@ class AudioManager {
         const legacyKeyMap = {
             bosstroll: 'bossTroll',
             bossdragon: 'bossDragon',
-            bossdemon: 'bossDemon',
-            gameover: 'gameOver'
+            bossdemon: 'bossDemon'
         };
         const resolvedEffectName = legacyKeyMap[effectName] || effectName;
         const soundEffectAudioElement = this.soundEffects[resolvedEffectName];

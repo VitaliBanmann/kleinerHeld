@@ -40,7 +40,7 @@ class Powerups {
      * @param {Object} keyboard Input object with flags (W,D1,D2,D3)
      */
     static update(world, deltaTime, keyboard) {
-        const character = world.character; // Descriptive variable
+        const character = world.character;
         if (!character) return;
         Powerups.ensureCharacterProps(character);
 
